@@ -316,15 +316,43 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       access_type: "免费" | "积分" | "兑换码" | "VIP"
+      app_role: "admin" | "moderator" | "user"
       resource_type: "真题" | "课件" | "押题" | "教材" | "其他"
     }
     CompositeTypes: {
@@ -454,6 +482,7 @@ export const Constants = {
   public: {
     Enums: {
       access_type: ["免费", "积分", "兑换码", "VIP"],
+      app_role: ["admin", "moderator", "user"],
       resource_type: ["真题", "课件", "押题", "教材", "其他"],
     },
   },

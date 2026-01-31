@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, BookOpen } from "lucide-react";
+import { Menu, X, BookOpen, User, LogIn, Shield } from "lucide-react";
 import { useState } from "react";
 import { SearchBar } from "./SearchBar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { label: "首页", href: "/" },
@@ -16,6 +17,7 @@ const navItems = [
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, isAdmin, isLoading } = useAuth();
 
   return (
     <header className="header-gradient sticky top-0 z-50 shadow-lg">
@@ -38,21 +40,53 @@ export const Header = () => {
             <SearchBar />
           </div>
 
-          {/* Desktop navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "nav-link",
-                  location.pathname === item.href && "nav-link-active"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          {/* Desktop navigation + auth */}
+          <div className="hidden lg:flex items-center gap-1">
+            <nav className="flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    "nav-link",
+                    location.pathname === item.href && "nav-link-active"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            
+            <div className="ml-2 pl-2 border-l border-white/20 flex items-center gap-2">
+              {!isLoading && (
+                user ? (
+                  <>
+                    {isAdmin && (
+                      <Link to="/admin">
+                        <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10">
+                          <Shield className="w-4 h-4 mr-1" />
+                          管理
+                        </Button>
+                      </Link>
+                    )}
+                    <Link to="/profile">
+                      <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-white/10">
+                        <User className="w-4 h-4 mr-1" />
+                        个人中心
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <Link to="/auth">
+                    <Button variant="secondary" size="sm" className="bg-white/20 text-primary-foreground hover:bg-white/30 border-0">
+                      <LogIn className="w-4 h-4 mr-1" />
+                      登录/注册
+                    </Button>
+                  </Link>
+                )
+              )}
+            </div>
+          </div>
 
           {/* Mobile menu button */}
           <Button
@@ -88,6 +122,42 @@ export const Header = () => {
                 {item.label}
               </Link>
             ))}
+            
+            <div className="border-t border-white/10 mt-2 pt-2">
+              {!isLoading && (
+                user ? (
+                  <>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        className="nav-link py-3 flex items-center gap-2"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Shield className="w-4 h-4" />
+                        管理后台
+                      </Link>
+                    )}
+                    <Link
+                      to="/profile"
+                      className="nav-link py-3 flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4" />
+                      个人中心
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    to="/auth"
+                    className="nav-link py-3 flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <LogIn className="w-4 h-4" />
+                    登录/注册
+                  </Link>
+                )
+              )}
+            </div>
           </nav>
         </div>
       )}

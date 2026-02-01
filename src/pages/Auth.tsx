@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 
 const emailSchema = z.string().email('请输入有效的邮箱地址');
 const passwordSchema = z.string().min(6, '密码至少需要6个字符');
@@ -18,6 +19,8 @@ const passwordSchema = z.string().min(6, '密码至少需要6个字符');
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [needsEmailConfirm, setNeedsEmailConfirm] = useState(false);
+  const [isResendingConfirm, setIsResendingConfirm] = useState(false);
   
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -41,6 +44,7 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setNeedsEmailConfirm(false);
     
     try {
       emailSchema.parse(loginEmail);
@@ -66,6 +70,7 @@ const Auth = () => {
         message = '邮箱或密码错误';
       } else if (error.message.includes('Email not confirmed')) {
         message = '请先验证您的邮箱';
+        setNeedsEmailConfirm(true);
       }
       toast({
         title: '登录失败',
@@ -79,6 +84,45 @@ const Auth = () => {
       });
       navigate('/');
     }
+  };
+
+  const handleResendConfirmation = async () => {
+    try {
+      emailSchema.parse(loginEmail);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast({
+          title: '请输入邮箱',
+          description: '请先在邮箱输入框填写有效邮箱地址后再发送验证邮件',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    setIsResendingConfirm(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: loginEmail,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    });
+    setIsResendingConfirm(false);
+
+    if (error) {
+      toast({
+        title: '发送失败',
+        description: error.message || '验证邮件发送失败，请稍后重试',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: '已发送验证邮件',
+      description: '请前往邮箱点击验证链接，完成后再回来登录（可检查垃圾箱）',
+    });
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -188,6 +232,31 @@ const Auth = () => {
                         '登录'
                       )}
                     </Button>
+
+                    {needsEmailConfirm && (
+                      <div className="rounded-md border bg-card p-3 text-sm">
+                        <p className="text-foreground">你的邮箱尚未验证。</p>
+                        <p className="mt-1 text-muted-foreground">
+                          点击下方按钮重新发送验证邮件，然后在邮箱里完成验证。
+                        </p>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="mt-3 w-full"
+                          onClick={handleResendConfirmation}
+                          disabled={isResendingConfirm}
+                        >
+                          {isResendingConfirm ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              发送中...
+                            </>
+                          ) : (
+                            '重新发送验证邮件'
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </form>
                 </TabsContent>
 

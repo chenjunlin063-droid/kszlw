@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ExamCategory from "./pages/ExamCategory";
 import ResourceDetail from "./pages/ResourceDetail";
 import Categories from "./pages/Categories";
+import CategoryDetail from "./pages/CategoryDetail";
 import SearchResults from "./pages/SearchResults";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -34,7 +35,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/categories" element={<Categories />} />
-            <Route path="/category/:slug" element={<Categories />} />
+            <Route path="/category/:slug" element={<CategoryDetail />} />
             <Route path="/exam/:slug" element={<ExamCategory />} />
             <Route path="/resource/:slug" element={<ResourceDetail />} />
             <Route path="/search" element={<SearchResults />} />

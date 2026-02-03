@@ -5,8 +5,8 @@ interface CategoryCardProps {
   name: string;
   slug: string;
   icon?: string;
-  examCount: number;
-  resourceCount: number;
+  examCount?: number;
+  resourceCount?: number;
 }
 
 export const CategoryCard = ({
@@ -28,9 +28,13 @@ export const CategoryCard = ({
               <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
                 {name}
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {examCount} 个考试 · {resourceCount} 份资料
-              </p>
+              {(examCount !== undefined || resourceCount !== undefined) && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {examCount !== undefined && `${examCount} 个考试`}
+                  {examCount !== undefined && resourceCount !== undefined && ' · '}
+                  {resourceCount !== undefined && `${resourceCount} 份资料`}
+                </p>
+              )}
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ExamCountdown } from "@/components/ExamCountdown";
@@ -6,6 +7,7 @@ import { StatsCard } from "@/components/StatsCard";
 import { CategoryCard } from "@/components/CategoryCard";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { SearchBar } from "@/components/SearchBar";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   FileText, 
   Download, 
@@ -14,57 +16,143 @@ import {
   Flame,
   Gift,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-// Mock data for demonstration
-const mockAnnouncements = [
-  { id: "1", title: "🎉 2024年一建真题已更新！限时免费下载", link: "/free", type: "promo" as const },
-  { id: "2", title: "📚 新用户注册即送50积分，可兑换热门资料", link: "/register", type: "info" as const },
-];
+interface Announcement {
+  id: string;
+  title: string;
+  link: string | null;
+  type: string | null;
+}
 
-const mockExams = [
-  { name: "一级建造师", date: new Date("2025-09-06"), icon: "🏗️" },
-  { name: "二级建造师", date: new Date("2025-05-31"), icon: "🏢" },
-  { name: "造价工程师", date: new Date("2025-10-18"), icon: "💰" },
-  { name: "消防工程师", date: new Date("2025-11-08"), icon: "🚒" },
-];
+interface Exam {
+  id: string;
+  name: string;
+  exam_date: string | null;
+  icon: string | null;
+  slug: string;
+}
 
-const mockCategories = [
-  { name: "建筑工程", slug: "jianzhu", icon: "🏗️", examCount: 8, resourceCount: 1250 },
-  { name: "财经会计", slug: "caijing", icon: "📊", examCount: 6, resourceCount: 890 },
-  { name: "消防安全", slug: "xiaofang", icon: "🚒", examCount: 3, resourceCount: 450 },
-  { name: "医药卫生", slug: "yiyao", icon: "🏥", examCount: 5, resourceCount: 680 },
-  { name: "教育培训", slug: "jiaoyu", icon: "📚", examCount: 4, resourceCount: 520 },
-  { name: "其他考试", slug: "qita", icon: "📝", examCount: 10, resourceCount: 760 },
-];
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+}
 
-const mockNewResources = [
-  { id: "1", title: "2024年一级建造师《建设工程经济》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "免费", year: 2024, downloadCount: 3256, isHot: true, isNew: true, slug: "yijian-jingji-2024" },
-  { id: "2", title: "2024年一级建造师《建设工程法规》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "免费", year: 2024, downloadCount: 2890, isNew: true, slug: "yijian-fagui-2024" },
-  { id: "3", title: "2024年二级建造师《建筑工程》冲刺课件", examName: "二级建造师", resourceType: "课件", accessType: "积分", year: 2024, downloadCount: 1560, isNew: true, slug: "erjian-jianzhu-kejian-2024" },
-  { id: "4", title: "2024年造价工程师《工程计价》押题密卷", examName: "造价工程师", resourceType: "押题", accessType: "VIP", year: 2024, downloadCount: 980, isHot: true, slug: "zaojia-jijia-yati-2024" },
-];
+interface Resource {
+  id: string;
+  title: string;
+  slug: string;
+  resource_type: string;
+  access_type: string;
+  year: number | null;
+  download_count: number | null;
+  is_hot: boolean | null;
+  is_new: boolean | null;
+  exam_id: string;
+}
 
-const mockHotResources = [
-  { id: "5", title: "一级建造师《项目管理》历年真题合集(2015-2024)", examName: "一级建造师", resourceType: "真题", accessType: "积分", downloadCount: 8920, isHot: true, slug: "yijian-xiangmu-linian" },
-  { id: "6", title: "二级建造师全科精讲班课件【完整版】", examName: "二级建造师", resourceType: "课件", accessType: "VIP", downloadCount: 6750, isHot: true, slug: "erjian-quanke-kejian" },
-  { id: "7", title: "消防工程师《技术实务》知识点总结PDF", examName: "消防工程师", resourceType: "课件", accessType: "免费", downloadCount: 5430, slug: "xiaofang-jishu-zongjie" },
-  { id: "8", title: "2024年注册会计师CPA全科押题卷", examName: "注册会计师", resourceType: "押题", accessType: "VIP", downloadCount: 4280, isHot: true, slug: "cpa-quanke-yati-2024" },
-];
-
-const mockFreeResources = [
-  { id: "9", title: "建造师公共科目复习策略与时间规划", examName: "一级建造师", resourceType: "其他", accessType: "免费", downloadCount: 2150, slug: "jzs-fuxi-celue" },
-  { id: "10", title: "2023年一级造价师《案例分析》真题答案", examName: "造价工程师", resourceType: "真题", accessType: "免费", year: 2023, downloadCount: 1890, slug: "zaojia-anli-2023" },
-  { id: "11", title: "消防规范速记口诀大全", examName: "消防工程师", resourceType: "课件", accessType: "免费", downloadCount: 3420, slug: "xiaofang-guifan-koujue" },
-];
+interface ResourceWithExam extends Resource {
+  examName: string;
+}
 
 const Index = () => {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [newResources, setNewResources] = useState<ResourceWithExam[]>([]);
+  const [hotResources, setHotResources] = useState<ResourceWithExam[]>([]);
+  const [freeResources, setFreeResources] = useState<ResourceWithExam[]>([]);
+  const [stats, setStats] = useState({ resources: 0, downloads: 0, categories: 0, exams: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      // Fetch all data in parallel
+      const [
+        announcementsRes,
+        examsRes,
+        categoriesRes,
+        newResourcesRes,
+        hotResourcesRes,
+        freeResourcesRes,
+        resourceCountRes,
+        downloadCountRes
+      ] = await Promise.all([
+        supabase.from('announcements').select('id, title, link, type').eq('is_active', true).order('is_pinned', { ascending: false }).limit(3),
+        supabase.from('exams').select('id, name, exam_date, icon, slug').eq('is_active', true).not('exam_date', 'is', null).order('exam_date', { ascending: true }).limit(4),
+        supabase.from('exam_categories').select('id, name, slug, icon').eq('is_active', true).order('sort_order', { ascending: true }),
+        supabase.from('resources').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(4),
+        supabase.from('resources').select('*').eq('is_active', true).eq('is_hot', true).order('download_count', { ascending: false }).limit(4),
+        supabase.from('resources').select('*').eq('is_active', true).eq('access_type', '免费').order('download_count', { ascending: false }).limit(3),
+        supabase.from('resources').select('id', { count: 'exact', head: true }),
+        supabase.from('download_history').select('id', { count: 'exact', head: true })
+      ]);
+
+      if (announcementsRes.data) setAnnouncements(announcementsRes.data);
+      if (examsRes.data) setExams(examsRes.data);
+      if (categoriesRes.data) setCategories(categoriesRes.data);
+
+      // Get exam names for resources
+      const allExamIds = [
+        ...(newResourcesRes.data || []).map(r => r.exam_id),
+        ...(hotResourcesRes.data || []).map(r => r.exam_id),
+        ...(freeResourcesRes.data || []).map(r => r.exam_id)
+      ];
+      const uniqueExamIds = [...new Set(allExamIds)];
+      
+      const { data: examNames } = await supabase
+        .from('exams')
+        .select('id, name')
+        .in('id', uniqueExamIds);
+      
+      const examNameMap = new Map(examNames?.map(e => [e.id, e.name]) || []);
+
+      const mapResources = (resources: Resource[]): ResourceWithExam[] => 
+        resources.map(r => ({ ...r, examName: examNameMap.get(r.exam_id) || '未知考试' }));
+
+      if (newResourcesRes.data) setNewResources(mapResources(newResourcesRes.data));
+      if (hotResourcesRes.data) setHotResources(mapResources(hotResourcesRes.data));
+      if (freeResourcesRes.data) setFreeResources(mapResources(freeResourcesRes.data));
+
+      setStats({
+        resources: resourceCountRes.count || 0,
+        downloads: downloadCountRes.count || 0,
+        categories: categoriesRes.data?.length || 0,
+        exams: examsRes.data?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <AnnouncementBanner announcements={mockAnnouncements} />
+      <AnnouncementBanner announcements={announcements.map(a => ({
+        id: a.id,
+        title: a.title,
+        link: a.link || undefined,
+        type: (a.type as 'info' | 'promo' | 'warning') || 'info'
+      }))} />
       <Header />
 
       {/* Hero Section with Search */}
@@ -83,17 +171,17 @@ const Index = () => {
           {/* Quick stats */}
           <div className="flex items-center justify-center gap-8 mt-8 text-primary-foreground/90">
             <div className="text-center">
-              <div className="text-2xl font-bold">50,000+</div>
+              <div className="text-2xl font-bold">{stats.resources.toLocaleString()}+</div>
               <div className="text-sm">优质资料</div>
             </div>
             <div className="w-px h-10 bg-primary-foreground/30" />
             <div className="text-center">
-              <div className="text-2xl font-bold">100+</div>
+              <div className="text-2xl font-bold">{stats.categories}+</div>
               <div className="text-sm">考试类型</div>
             </div>
             <div className="w-px h-10 bg-primary-foreground/30" />
             <div className="text-center">
-              <div className="text-2xl font-bold">200万+</div>
+              <div className="text-2xl font-bold">{stats.downloads.toLocaleString()}+</div>
               <div className="text-sm">下载次数</div>
             </div>
           </div>
@@ -101,82 +189,126 @@ const Index = () => {
       </section>
 
       {/* Countdown Section */}
-      <section className="py-8 bg-muted/50">
-        <div className="container">
-          <div className="section-title">
-            <span>考试倒计时</span>
+      {exams.length > 0 && (
+        <section className="py-8 bg-muted/50">
+          <div className="container">
+            <div className="section-title">
+              <span>考试倒计时</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {exams.map((exam) => (
+                <ExamCountdown
+                  key={exam.id}
+                  examName={exam.name}
+                  examDate={exam.exam_date ? new Date(exam.exam_date) : new Date()}
+                  icon={exam.icon || "📝"}
+                />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {mockExams.map((exam, index) => (
-              <ExamCountdown
-                key={index}
-                examName={exam.name}
-                examDate={exam.date}
-                icon={exam.icon}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <div className="container py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Today's New Resources */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <div className="section-title">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  <span>今日更新</span>
-                  <span className="tag-new ml-2">+{mockNewResources.length}</span>
+            {newResources.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="section-title">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    <span>今日更新</span>
+                    <span className="tag-new ml-2">+{newResources.length}</span>
+                  </div>
+                  <Link to="/new" className="text-sm text-primary hover:underline flex items-center gap-1">
+                    查看全部 <ChevronRight className="w-4 h-4" />
+                  </Link>
                 </div>
-                <Link to="/new" className="text-sm text-primary hover:underline flex items-center gap-1">
-                  查看全部 <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-              <div className="space-y-3">
-                {mockNewResources.map((resource) => (
-                  <ResourceCard key={resource.id} {...resource} />
-                ))}
-              </div>
-            </section>
+                <div className="space-y-3">
+                  {newResources.map((resource) => (
+                    <ResourceCard 
+                      key={resource.id} 
+                      id={resource.id}
+                      title={resource.title}
+                      slug={resource.slug}
+                      examName={resource.examName}
+                      resourceType={resource.resource_type}
+                      accessType={resource.access_type}
+                      year={resource.year || undefined}
+                      downloadCount={resource.download_count || 0}
+                      isHot={resource.is_hot || false}
+                      isNew={resource.is_new || false}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Hot Resources */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <div className="section-title">
-                  <Flame className="w-5 h-5 text-accent" />
-                  <span>热门下载</span>
+            {hotResources.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="section-title">
+                    <Flame className="w-5 h-5 text-accent" />
+                    <span>热门下载</span>
+                  </div>
+                  <Link to="/hot" className="text-sm text-primary hover:underline flex items-center gap-1">
+                    查看全部 <ChevronRight className="w-4 h-4" />
+                  </Link>
                 </div>
-                <Link to="/hot" className="text-sm text-primary hover:underline flex items-center gap-1">
-                  查看全部 <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-              <div className="space-y-3">
-                {mockHotResources.map((resource) => (
-                  <ResourceCard key={resource.id} {...resource} />
-                ))}
-              </div>
-            </section>
+                <div className="space-y-3">
+                  {hotResources.map((resource) => (
+                    <ResourceCard 
+                      key={resource.id} 
+                      id={resource.id}
+                      title={resource.title}
+                      slug={resource.slug}
+                      examName={resource.examName}
+                      resourceType={resource.resource_type}
+                      accessType={resource.access_type}
+                      year={resource.year || undefined}
+                      downloadCount={resource.download_count || 0}
+                      isHot={resource.is_hot || false}
+                      isNew={resource.is_new || false}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Free Resources */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <div className="section-title">
-                  <Gift className="w-5 h-5 text-success" />
-                  <span>免费专区</span>
+            {freeResources.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="section-title">
+                    <Gift className="w-5 h-5 text-success" />
+                    <span>免费专区</span>
+                  </div>
+                  <Link to="/free" className="text-sm text-primary hover:underline flex items-center gap-1">
+                    查看全部 <ChevronRight className="w-4 h-4" />
+                  </Link>
                 </div>
-                <Link to="/free" className="text-sm text-primary hover:underline flex items-center gap-1">
-                  查看全部 <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-              <div className="space-y-3">
-                {mockFreeResources.map((resource) => (
-                  <ResourceCard key={resource.id} {...resource} />
-                ))}
-              </div>
-            </section>
+                <div className="space-y-3">
+                  {freeResources.map((resource) => (
+                    <ResourceCard 
+                      key={resource.id} 
+                      id={resource.id}
+                      title={resource.title}
+                      slug={resource.slug}
+                      examName={resource.examName}
+                      resourceType={resource.resource_type}
+                      accessType={resource.access_type}
+                      year={resource.year || undefined}
+                      downloadCount={resource.download_count || 0}
+                      isHot={resource.is_hot || false}
+                      isNew={resource.is_new || false}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -185,24 +317,23 @@ const Index = () => {
             <div className="grid grid-cols-2 gap-4">
               <StatsCard
                 icon={<FileText className="w-6 h-6" />}
-                value="52,380"
+                value={stats.resources.toLocaleString()}
                 label="资料总数"
               />
               <StatsCard
                 icon={<Download className="w-6 h-6" />}
-                value="2,158,920"
+                value={stats.downloads.toLocaleString()}
                 label="累计下载"
               />
               <StatsCard
                 icon={<Users className="w-6 h-6" />}
-                value="98,560"
-                label="注册用户"
+                value={stats.categories}
+                label="分类数量"
               />
               <StatsCard
                 icon={<BookOpen className="w-6 h-6" />}
-                value={128}
-                label="今日更新"
-                trend="↑ 12%"
+                value={stats.exams}
+                label="考试数量"
               />
             </div>
 
@@ -212,8 +343,13 @@ const Index = () => {
                 <span>考试分类</span>
               </div>
               <div className="space-y-3">
-                {mockCategories.map((category) => (
-                  <CategoryCard key={category.slug} {...category} />
+                {categories.map((category) => (
+                  <CategoryCard 
+                    key={category.id} 
+                    name={category.name}
+                    slug={category.slug}
+                    icon={category.icon || "📝"}
+                  />
                 ))}
               </div>
             </div>

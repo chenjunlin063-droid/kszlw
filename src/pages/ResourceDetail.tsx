@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useParams, Link } from "react-router-dom";
@@ -9,70 +10,100 @@ import {
   Eye, 
   Share2,
   BookOpen,
-  Clock
+  Clock,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ResourceCard } from "@/components/ResourceCard";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data
-const mockResourceDetail = {
-  id: "1",
-  title: "2024年一级建造师《建设工程经济》真题及答案",
-  examName: "一级建造师",
-  examSlug: "yijian",
-  subject: "建设工程经济",
-  resourceType: "真题",
-  accessType: "免费",
-  year: 2024,
-  downloadCount: 3256,
-  viewCount: 12580,
-  fileSize: "15.6 MB",
-  fileFormat: "PDF",
-  isHot: true,
-  isNew: true,
-  pointsRequired: 10,
-  description: "本资料为2024年一级建造师《建设工程经济》科目的真题试卷及详细答案解析。试题完整收录当年考试全部题目，答案由名师团队精心编写，包含解题思路和知识点归纳。",
-  content: `
-## 资料内容
-
-1. **2024年考试真题完整版**
-   - 单选题 60道
-   - 多选题 20道
-   - 案例分析题 5道
-
-2. **详细答案解析**
-   - 每题配有详细解题过程
-   - 知识点标注
-   - 常见错误分析
-
-3. **考点归纳总结**
-   - 本年度考试重点
-   - 与往年考题对比分析
-   - 未来备考建议
-
-## 适用人群
-
-- 2025年备考一级建造师的考生
-- 需要复习真题的在职考生
-- 想了解考试难度的初学者
-  `,
-  createdAt: "2024-09-15",
-  updatedAt: "2024-09-20",
-};
-
-const mockRelatedResources = [
-  { id: "2", title: "2024年一级建造师《建设工程法规》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "免费", year: 2024, downloadCount: 2890, isNew: true, slug: "yijian-fagui-2024" },
-  { id: "3", title: "2024年一级建造师《项目管理》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "积分", year: 2024, downloadCount: 2560, slug: "yijian-xiangmu-2024" },
-  { id: "4", title: "2023年一级建造师《建设工程经济》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "免费", year: 2023, downloadCount: 4520, slug: "yijian-jingji-2023" },
-];
+interface Resource {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  content: string | null;
+  resource_type: string;
+  access_type: string;
+  year: number | null;
+  download_count: number | null;
+  file_size: string | null;
+  file_format: string | null;
+  file_url: string | null;
+  is_hot: boolean | null;
+  is_new: boolean | null;
+  points_required: number | null;
+  subject: string | null;
+  created_at: string;
+  updated_at: string;
+  exam_id: string;
+  exam?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}
 
 const ResourceDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [resource, setResource] = useState<Resource | null>(null);
+  const [relatedResources, setRelatedResources] = useState<Resource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [viewCount, setViewCount] = useState(0);
 
-  const resource = mockResourceDetail;
+  useEffect(() => {
+    if (slug) {
+      fetchResource();
+    }
+  }, [slug]);
+
+  const fetchResource = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch resource with exam info
+      const { data: resourceData, error } = await supabase
+        .from('resources')
+        .select(`
+          *,
+          exam:exams(id, name, slug)
+        `)
+        .eq('slug', slug)
+        .eq('is_active', true)
+        .single();
+
+      if (error) {
+        console.error('Error fetching resource:', error);
+        return;
+      }
+
+      setResource(resourceData);
+      // Simulate view count (in a real app, this would be tracked in the database)
+      setViewCount((resourceData.download_count || 0) * 4);
+
+      // Fetch related resources from the same exam
+      if (resourceData.exam_id) {
+        const { data: relatedData } = await supabase
+          .from('resources')
+          .select(`
+            *,
+            exam:exams(id, name, slug)
+          `)
+          .eq('exam_id', resourceData.exam_id)
+          .eq('is_active', true)
+          .neq('id', resourceData.id)
+          .limit(3);
+
+        setRelatedResources(relatedData || []);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getAccessTypeClass = (type: string) => {
     switch (type) {
@@ -87,6 +118,38 @@ const ResourceDetail = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('zh-CN');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!resource) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container py-20 text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">资料不存在</h1>
+          <p className="text-muted-foreground mb-6">未找到对应的资料信息</p>
+          <Link to="/">
+            <Button>返回首页</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -97,10 +160,14 @@ const ResourceDetail = () => {
           <nav className="flex items-center gap-2 text-sm flex-wrap">
             <Link to="/" className="text-muted-foreground hover:text-primary">首页</Link>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            <Link to={`/exam/${resource.examSlug}`} className="text-muted-foreground hover:text-primary">
-              {resource.examName}
-            </Link>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            {resource.exam && (
+              <>
+                <Link to={`/exam/${resource.exam.slug}`} className="text-muted-foreground hover:text-primary">
+                  {resource.exam.name}
+                </Link>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </>
+            )}
             <span className="text-foreground font-medium line-clamp-1">{resource.title}</span>
           </nav>
         </div>
@@ -119,21 +186,23 @@ const ResourceDetail = () => {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                      {resource.isNew && <span className="tag-new">新</span>}
-                      {resource.isHot && <span className="tag-hot">热</span>}
-                      <span className={getAccessTypeClass(resource.accessType)}>
-                        {resource.accessType}
+                      {resource.is_new && <span className="tag-new">新</span>}
+                      {resource.is_hot && <span className="tag-hot">热</span>}
+                      <span className={getAccessTypeClass(resource.access_type)}>
+                        {resource.access_type}
                       </span>
                     </div>
                     <h1 className="text-xl md:text-2xl font-bold text-foreground mb-3">
                       {resource.title}
                     </h1>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        {resource.examName}
-                      </span>
-                      <Badge variant="outline">{resource.resourceType}</Badge>
+                      {resource.exam && (
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-4 h-4" />
+                          {resource.exam.name}
+                        </span>
+                      )}
+                      <Badge variant="outline">{resource.resource_type}</Badge>
                       {resource.year && (
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
@@ -148,19 +217,19 @@ const ResourceDetail = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{resource.downloadCount.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-foreground">{(resource.download_count || 0).toLocaleString()}</div>
                     <div className="text-sm text-muted-foreground">下载次数</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{resource.viewCount.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-foreground">{viewCount.toLocaleString()}</div>
                     <div className="text-sm text-muted-foreground">浏览次数</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{resource.fileSize}</div>
+                    <div className="text-2xl font-bold text-foreground">{resource.file_size || "-"}</div>
                     <div className="text-sm text-muted-foreground">文件大小</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{resource.fileFormat}</div>
+                    <div className="text-2xl font-bold text-foreground">{resource.file_format || "-"}</div>
                     <div className="text-sm text-muted-foreground">文件格式</div>
                   </div>
                 </div>
@@ -168,32 +237,50 @@ const ResourceDetail = () => {
             </Card>
 
             {/* Description */}
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <h2 className="text-lg font-bold text-foreground mb-4">资料简介</h2>
-                <p className="text-muted-foreground leading-relaxed">{resource.description}</p>
-              </CardContent>
-            </Card>
+            {resource.description && (
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-bold text-foreground mb-4">资料简介</h2>
+                  <p className="text-muted-foreground leading-relaxed">{resource.description}</p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Content */}
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <h2 className="text-lg font-bold text-foreground mb-4">详细内容</h2>
-                <div className="prose prose-sm max-w-none text-muted-foreground">
-                  <div dangerouslySetInnerHTML={{ __html: resource.content.replace(/\n/g, '<br/>').replace(/##/g, '<h3>').replace(/\*\*/g, '<strong>') }} />
-                </div>
-              </CardContent>
-            </Card>
+            {resource.content && (
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-bold text-foreground mb-4">详细内容</h2>
+                  <div className="prose prose-sm max-w-none text-muted-foreground">
+                    <div dangerouslySetInnerHTML={{ __html: resource.content.replace(/\n/g, '<br/>').replace(/##/g, '<h3>').replace(/\*\*/g, '<strong>') }} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Related Resources */}
-            <div>
-              <h2 className="section-title">相关推荐</h2>
-              <div className="space-y-3">
-                {mockRelatedResources.map((res) => (
-                  <ResourceCard key={res.id} {...res} />
-                ))}
+            {relatedResources.length > 0 && (
+              <div>
+                <h2 className="section-title">相关推荐</h2>
+                <div className="space-y-3">
+                  {relatedResources.map((res) => (
+                    <ResourceCard 
+                      key={res.id} 
+                      id={res.id}
+                      title={res.title}
+                      examName={res.exam?.name || ""}
+                      resourceType={res.resource_type}
+                      accessType={res.access_type}
+                      year={res.year || undefined}
+                      downloadCount={res.download_count || 0}
+                      isHot={res.is_hot || false}
+                      isNew={res.is_new || false}
+                      slug={res.slug}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -203,7 +290,7 @@ const ResourceDetail = () => {
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold text-foreground mb-4">下载资料</h3>
                 
-                {resource.accessType === "免费" ? (
+                {resource.access_type === "免费" ? (
                   <>
                     <p className="text-sm text-muted-foreground mb-4">
                       此资料为免费资源，登录后即可下载
@@ -213,7 +300,7 @@ const ResourceDetail = () => {
                       免费下载
                     </Button>
                   </>
-                ) : resource.accessType === "VIP" ? (
+                ) : resource.access_type === "VIP" ? (
                   <>
                     <p className="text-sm text-muted-foreground mb-4">
                       此资料为VIP专属资源，开通VIP后可无限下载
@@ -229,7 +316,7 @@ const ResourceDetail = () => {
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground mb-4">
-                      此资料需要 <strong className="text-warning">{resource.pointsRequired || 10}积分</strong> 兑换
+                      此资料需要 <strong className="text-warning">{resource.points_required || 10}积分</strong> 兑换
                     </p>
                     <Button className="w-full bg-gradient-primary hover:opacity-90 mb-3">
                       <Download className="w-4 h-4 mr-2" />
@@ -261,30 +348,34 @@ const ResourceDetail = () => {
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold text-foreground mb-4">资料信息</h3>
                 <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">所属考试</span>
-                    <Link to={`/exam/${resource.examSlug}`} className="text-primary hover:underline">
-                      {resource.examName}
-                    </Link>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">科目</span>
-                    <span className="text-foreground">{resource.subject}</span>
-                  </div>
+                  {resource.exam && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">所属考试</span>
+                      <Link to={`/exam/${resource.exam.slug}`} className="text-primary hover:underline">
+                        {resource.exam.name}
+                      </Link>
+                    </div>
+                  )}
+                  {resource.subject && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">科目</span>
+                      <span className="text-foreground">{resource.subject}</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">资料类型</span>
-                    <Badge variant="outline">{resource.resourceType}</Badge>
+                    <Badge variant="outline">{resource.resource_type}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">上传时间</span>
                     <span className="text-foreground flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {resource.createdAt}
+                      {formatDate(resource.created_at)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">更新时间</span>
-                    <span className="text-foreground">{resource.updatedAt}</span>
+                    <span className="text-foreground">{formatDate(resource.updated_at)}</span>
                   </div>
                 </div>
               </CardContent>

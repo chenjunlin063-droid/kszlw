@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ResourceCard } from "@/components/ResourceCard";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, Filter, SlidersHorizontal } from "lucide-react";
+import { ChevronRight, Filter, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,35 +13,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data
-const mockExamData = {
-  yijian: {
-    name: "一级建造师",
-    category: "建筑工程",
-    icon: "🏗️",
-    description: "一级建造师是建设工程行业的一种执业资格，是担任大型工程项目经理的前提条件。",
-    resourceCount: 1250,
-  },
-  erjian: {
-    name: "二级建造师",
-    category: "建筑工程",
-    icon: "🏢",
-    description: "二级建造师是建筑类的一种职业资格，是担任项目经理的前提条件。",
-    resourceCount: 980,
-  },
-};
+interface Exam {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  description: string | null;
+  category_id: string | null;
+  category?: {
+    name: string;
+  };
+}
 
-const mockResources = [
-  { id: "1", title: "2024年一级建造师《建设工程经济》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "免费", year: 2024, downloadCount: 3256, isHot: true, isNew: true, slug: "yijian-jingji-2024" },
-  { id: "2", title: "2024年一级建造师《建设工程法规》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "免费", year: 2024, downloadCount: 2890, isNew: true, slug: "yijian-fagui-2024" },
-  { id: "3", title: "2024年一级建造师《项目管理》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "积分", year: 2024, downloadCount: 2560, slug: "yijian-xiangmu-2024" },
-  { id: "4", title: "2023年一级建造师《建设工程经济》真题及答案", examName: "一级建造师", resourceType: "真题", accessType: "免费", year: 2023, downloadCount: 4520, slug: "yijian-jingji-2023" },
-  { id: "5", title: "一级建造师《项目管理》历年真题合集", examName: "一级建造师", resourceType: "真题", accessType: "VIP", downloadCount: 8920, isHot: true, slug: "yijian-xiangmu-linian" },
-  { id: "6", title: "一级建造师全科精讲班课件【2024版】", examName: "一级建造师", resourceType: "课件", accessType: "VIP", year: 2024, downloadCount: 6750, isHot: true, slug: "yijian-quanke-kejian" },
-  { id: "7", title: "一级建造师《法规》知识点思维导图", examName: "一级建造师", resourceType: "课件", accessType: "免费", downloadCount: 3420, slug: "yijian-fagui-siwei" },
-  { id: "8", title: "2024年一级建造师考前押题密卷", examName: "一级建造师", resourceType: "押题", accessType: "VIP", year: 2024, downloadCount: 4280, isHot: true, slug: "yijian-yati-2024" },
-];
+interface Resource {
+  id: string;
+  title: string;
+  slug: string;
+  resource_type: string;
+  access_type: string;
+  year: number | null;
+  download_count: number | null;
+  is_hot: boolean | null;
+  is_new: boolean | null;
+  exam_id: string;
+}
 
 const years = [2024, 2023, 2022, 2021, 2020];
 const resourceTypes = ["全部", "真题", "课件", "押题", "教材", "其他"];
@@ -52,22 +49,95 @@ const ExamCategory = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedType, setSelectedType] = useState("全部");
   const [selectedAccess, setSelectedAccess] = useState("全部");
+  const [exam, setExam] = useState<Exam | null>(null);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalResources, setTotalResources] = useState(0);
 
-  const examData = mockExamData[slug as keyof typeof mockExamData] || {
-    name: "考试资料",
-    category: "其他",
-    icon: "📝",
-    description: "暂无描述",
-    resourceCount: 0,
+  useEffect(() => {
+    if (slug) {
+      fetchExamData();
+    }
+  }, [slug]);
+
+  const fetchExamData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch exam details with category
+      const { data: examData, error: examError } = await supabase
+        .from('exams')
+        .select(`
+          *,
+          category:exam_categories(name)
+        `)
+        .eq('slug', slug)
+        .eq('is_active', true)
+        .single();
+
+      if (examError) {
+        console.error('Error fetching exam:', examError);
+        return;
+      }
+
+      setExam(examData);
+
+      // Fetch resources for this exam
+      const { data: resourcesData, error: resourcesError } = await supabase
+        .from('resources')
+        .select('*')
+        .eq('exam_id', examData.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (resourcesError) {
+        console.error('Error fetching resources:', resourcesError);
+        return;
+      }
+
+      setResources(resourcesData || []);
+      setTotalResources(resourcesData?.length || 0);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Filter resources based on selections
-  const filteredResources = mockResources.filter((resource) => {
+  const filteredResources = resources.filter((resource) => {
     if (selectedYear !== "all" && resource.year !== parseInt(selectedYear)) return false;
-    if (selectedType !== "全部" && resource.resourceType !== selectedType) return false;
-    if (selectedAccess !== "全部" && resource.accessType !== selectedAccess) return false;
+    if (selectedType !== "全部" && resource.resource_type !== selectedType) return false;
+    if (selectedAccess !== "全部" && resource.access_type !== selectedAccess) return false;
     return true;
   });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!exam) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container py-20 text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">考试不存在</h1>
+          <p className="text-muted-foreground mb-6">未找到对应的考试信息</p>
+          <Link to="/">
+            <Button>返回首页</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,7 +151,7 @@ const ExamCategory = () => {
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
             <Link to="/categories" className="text-muted-foreground hover:text-primary">考试分类</Link>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            <span className="text-foreground font-medium">{examData.name}</span>
+            <span className="text-foreground font-medium">{exam.name}</span>
           </nav>
         </div>
       </div>
@@ -90,15 +160,15 @@ const ExamCategory = () => {
       <div className="bg-card border-b border-border">
         <div className="container py-6">
           <div className="flex items-start gap-4">
-            <div className="text-5xl">{examData.icon}</div>
+            <div className="text-5xl">{exam.icon || "📝"}</div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-foreground">{examData.name}</h1>
-                <Badge variant="outline">{examData.category}</Badge>
+                <h1 className="text-2xl font-bold text-foreground">{exam.name}</h1>
+                {exam.category && <Badge variant="outline">{exam.category.name}</Badge>}
               </div>
-              <p className="text-muted-foreground mb-3">{examData.description}</p>
+              <p className="text-muted-foreground mb-3">{exam.description || "暂无描述"}</p>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>共 <strong className="text-primary">{examData.resourceCount}</strong> 份资料</span>
+                <span>共 <strong className="text-primary">{totalResources}</strong> 份资料</span>
                 <span>|</span>
                 <span>本页显示 <strong>{filteredResources.length}</strong> 份</span>
               </div>
@@ -173,7 +243,19 @@ const ExamCategory = () => {
         {filteredResources.length > 0 ? (
           <div className="space-y-3">
             {filteredResources.map((resource) => (
-              <ResourceCard key={resource.id} {...resource} />
+              <ResourceCard 
+                key={resource.id} 
+                id={resource.id}
+                title={resource.title}
+                examName={exam.name}
+                resourceType={resource.resource_type}
+                accessType={resource.access_type}
+                year={resource.year || undefined}
+                downloadCount={resource.download_count || 0}
+                isHot={resource.is_hot || false}
+                isNew={resource.is_new || false}
+                slug={resource.slug}
+              />
             ))}
           </div>
         ) : (
@@ -181,15 +263,6 @@ const ExamCategory = () => {
             <Filter className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">暂无匹配资料</h3>
             <p className="text-muted-foreground">请调整筛选条件试试</p>
-          </div>
-        )}
-
-        {/* Load more button */}
-        {filteredResources.length > 0 && (
-          <div className="text-center mt-8">
-            <Button variant="outline" size="lg">
-              加载更多资料
-            </Button>
           </div>
         )}
       </div>

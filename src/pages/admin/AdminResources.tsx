@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -11,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, Loader2, Upload, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MarkdownEditor from '@/components/admin/MarkdownEditor';
 
 interface Resource {
   id: string;
@@ -379,23 +379,21 @@ const AdminResources = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="description">简介</Label>
-                <Textarea
-                  id="description"
+                <MarkdownEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(val) => setFormData({ ...formData, description: val })}
                   placeholder="资料简介"
-                  rows={2}
+                  minRows={3}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="content">详细内容</Label>
-                <Textarea
-                  id="content"
+                <MarkdownEditor
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="资料详细介绍（支持Markdown）"
-                  rows={4}
+                  onChange={(val) => setFormData({ ...formData, content: val })}
+                  placeholder="资料详细介绍（支持Markdown语法，可直接粘贴图片）"
+                  minRows={6}
                 />
               </div>
 

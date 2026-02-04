@@ -187,28 +187,34 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          is_vip: boolean | null
           points: number | null
           updated_at: string
           user_id: string
           username: string | null
+          vip_expires_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          is_vip?: boolean | null
           points?: number | null
           updated_at?: string
           user_id: string
           username?: string | null
+          vip_expires_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          is_vip?: boolean | null
           points?: number | null
           updated_at?: string
           user_id?: string
           username?: string | null
+          vip_expires_at?: string | null
         }
         Relationships: []
       }
@@ -234,6 +240,7 @@ export type Database = {
           subject: string | null
           title: string
           updated_at: string
+          vip_content: string | null
           year: number | null
         }
         Insert: {
@@ -257,6 +264,7 @@ export type Database = {
           subject?: string | null
           title: string
           updated_at?: string
+          vip_content?: string | null
           year?: number | null
         }
         Update: {
@@ -280,6 +288,7 @@ export type Database = {
           subject?: string | null
           title?: string
           updated_at?: string
+          vip_content?: string | null
           year?: number | null
         }
         Relationships: [

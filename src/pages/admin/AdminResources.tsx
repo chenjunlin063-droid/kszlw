@@ -18,6 +18,7 @@ interface Resource {
   slug: string;
   description: string | null;
   content: string | null;
+  vip_content: string | null;
   exam_id: string;
   resource_type: string;
   access_type: string;
@@ -58,6 +59,7 @@ const AdminResources = () => {
     slug: '',
     description: '',
     content: '',
+    vip_content: '',
     exam_id: '',
     resource_type: '真题',
     access_type: '免费',
@@ -96,6 +98,7 @@ const AdminResources = () => {
         slug: resource.slug,
         description: resource.description || '',
         content: resource.content || '',
+        vip_content: resource.vip_content || '',
         exam_id: resource.exam_id,
         resource_type: resource.resource_type,
         access_type: resource.access_type,
@@ -117,6 +120,7 @@ const AdminResources = () => {
         slug: '',
         description: '',
         content: '',
+        vip_content: '',
         exam_id: '',
         resource_type: '真题',
         access_type: '免费',
@@ -193,6 +197,7 @@ const AdminResources = () => {
       slug: formData.slug,
       description: formData.description || null,
       content: formData.content || null,
+      vip_content: formData.vip_content || null,
       exam_id: formData.exam_id,
       resource_type: formData.resource_type as any,
       access_type: formData.access_type as any,
@@ -395,6 +400,27 @@ const AdminResources = () => {
                   placeholder="资料详细介绍（支持Markdown语法，可直接粘贴图片）"
                   minRows={6}
                 />
+              </div>
+
+              {/* VIP Content */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="vip_content" className="text-amber-600 dark:text-amber-400">
+                    VIP专属内容
+                  </Label>
+                  <span className="text-xs px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full">
+                    仅VIP可见
+                  </span>
+                </div>
+                <MarkdownEditor
+                  value={formData.vip_content}
+                  onChange={(val) => setFormData({ ...formData, vip_content: val })}
+                  placeholder="VIP专属内容，如下载链接、提取码等（仅VIP会员可见）"
+                  minRows={4}
+                />
+                <p className="text-xs text-muted-foreground">
+                  在这里添加VIP专属内容，如资源下载链接、网盘提取码等。非VIP用户将看到锁定状态。
+                </p>
               </div>
 
               {/* File Upload */}

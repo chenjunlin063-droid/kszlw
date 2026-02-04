@@ -19,6 +19,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ResourceCard } from "@/components/ResourceCard";
 import { supabase } from "@/integrations/supabase/client";
+import VipContentBlock from "@/components/VipContentBlock";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Resource {
   id: string;
@@ -26,6 +28,7 @@ interface Resource {
   slug: string;
   description: string | null;
   content: string | null;
+  vip_content: string | null;
   resource_type: string;
   access_type: string;
   year: number | null;
@@ -47,18 +50,52 @@ interface Resource {
   };
 }
 
+interface UserProfile {
+  is_vip: boolean | null;
+  vip_expires_at: string | null;
+}
+
 const ResourceDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { user } = useAuth();
   const [resource, setResource] = useState<Resource | null>(null);
   const [relatedResources, setRelatedResources] = useState<Resource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewCount, setViewCount] = useState(0);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     if (slug) {
       fetchResource();
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    } else {
+      setUserProfile(null);
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('profiles')
+      .select('is_vip, vip_expires_at')
+      .eq('user_id', user.id)
+      .single();
+    
+    setUserProfile(data);
+  };
+
+  // Check if user has active VIP status
+  const isUserVip = (): boolean => {
+    if (!userProfile?.is_vip) return false;
+    if (!userProfile.vip_expires_at) return userProfile.is_vip;
+    return new Date(userProfile.vip_expires_at) > new Date();
+  };
 
   const fetchResource = async () => {
     setIsLoading(true);
@@ -298,6 +335,17 @@ const ResourceDetail = () => {
                   />
                 </CardContent>
               </Card>
+            )}
+
+            {/* VIP Content Block */}
+            {resource.vip_content && (
+              <div className="mb-6">
+                <VipContentBlock
+                  content={resource.vip_content}
+                  isVip={isUserVip()}
+                  isLoggedIn={!!user}
+                />
+              </div>
             )}
 
             {/* Related Resources */}

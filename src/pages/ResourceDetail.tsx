@@ -105,6 +105,44 @@ const ResourceDetail = () => {
     }
   };
 
+  // Markdown renderer for content display
+  const renderMarkdown = (text: string): string => {
+    return text
+      // Code blocks (must be before inline code)
+      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="bg-muted p-3 rounded-lg overflow-x-auto my-3"><code class="text-sm">$2</code></pre>')
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
+      // Headers
+      .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-4 mb-2 text-foreground">$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold mt-5 mb-2 text-foreground">$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-6 mb-3 text-foreground">$1</h1>')
+      // Bold
+      .replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground">$1</strong>')
+      // Italic
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Strikethrough
+      .replace(/~~(.+?)~~/g, '<del>$1</del>')
+      // Images (must be before links)
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full rounded-lg my-3" />')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">$1</a>')
+      // Auto-link bare URLs (not already in markdown link or image syntax)
+      .replace(/(?<!\]\()(?<!")(https?:\/\/[^\s<>\)]+)(?!\))/g, '<a href="$1" class="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">$1</a>')
+      // Horizontal rule
+      .replace(/^---$/gm, '<hr class="my-4 border-border" />')
+      // Blockquote
+      .replace(/^> (.+)$/gm, '<blockquote class="border-l-4 border-primary/30 pl-4 py-1 my-2 italic">$1</blockquote>')
+      // Checkbox
+      .replace(/^- \[x\] (.+)$/gm, '<div class="flex items-center gap-2 my-1"><input type="checkbox" checked disabled class="rounded" /><span class="line-through">$1</span></div>')
+      .replace(/^- \[ \] (.+)$/gm, '<div class="flex items-center gap-2 my-1"><input type="checkbox" disabled class="rounded" /><span>$1</span></div>')
+      // Unordered list
+      .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+      // Ordered list
+      .replace(/^\d+\. (.+)$/gm, '<li class="ml-4 list-decimal">$1</li>')
+      // Line breaks
+      .replace(/\n/g, '<br />');
+  };
+
   const getAccessTypeClass = (type: string) => {
     switch (type) {
       case "免费":
@@ -241,7 +279,10 @@ const ResourceDetail = () => {
               <Card className="mb-6">
                 <CardContent className="p-6">
                   <h2 className="text-lg font-bold text-foreground mb-4">资料简介</h2>
-                  <p className="text-muted-foreground leading-relaxed">{resource.description}</p>
+                  <div 
+                    className="text-muted-foreground leading-relaxed [&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(resource.description) }} 
+                  />
                 </CardContent>
               </Card>
             )}
@@ -251,9 +292,10 @@ const ResourceDetail = () => {
               <Card className="mb-6">
                 <CardContent className="p-6">
                   <h2 className="text-lg font-bold text-foreground mb-4">详细内容</h2>
-                  <div className="prose prose-sm max-w-none text-muted-foreground">
-                    <div dangerouslySetInnerHTML={{ __html: resource.content.replace(/\n/g, '<br/>').replace(/##/g, '<h3>').replace(/\*\*/g, '<strong>') }} />
-                  </div>
+                  <div 
+                    className="prose prose-sm max-w-none text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(resource.content) }} 
+                  />
                 </CardContent>
               </Card>
             )}

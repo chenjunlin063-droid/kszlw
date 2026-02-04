@@ -142,10 +142,20 @@ const MarkdownEditor = ({ value, onChange, placeholder, minRows = 8 }: MarkdownE
     return urlData.publicUrl;
   };
 
+  const isValidUrl = (text: string): boolean => {
+    try {
+      const url = new URL(text.trim());
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const handlePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     if (!items) return;
 
+    // Check for images first
     for (const item of items) {
       if (item.type.startsWith('image/')) {
         e.preventDefault();
@@ -161,6 +171,29 @@ const MarkdownEditor = ({ value, onChange, placeholder, minRows = 8 }: MarkdownE
           toast({ title: '图片上传成功' });
         }
         return;
+      }
+    }
+
+    // Check for plain text URLs
+    const text = e.clipboardData.getData('text/plain');
+    if (text && isValidUrl(text)) {
+      e.preventDefault();
+      const textarea = textareaRef.current;
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = value.substring(start, end);
+        
+        if (selectedText) {
+          // If text is selected, wrap it as link text
+          const newText = value.substring(0, start) + `[${selectedText}](${text.trim()})` + value.substring(end);
+          onChange(newText);
+          toast({ title: '已自动识别链接', description: '选中文字已转换为超链接' });
+        } else {
+          // Insert as auto-linked URL
+          insertAtCursor(text.trim());
+          toast({ title: '已自动识别链接' });
+        }
       }
     }
   };

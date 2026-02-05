@@ -10,13 +10,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Mail, Coins, Download, Settings, LogOut, Shield } from 'lucide-react';
+import { Loader2, User, Mail, Coins, Download, Settings, LogOut, Shield, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { VipStatusCard } from '@/components/profile/VipStatusCard';
+import { VipOrderHistory } from '@/components/profile/VipOrderHistory';
 
 interface Profile {
   username: string | null;
   points: number | null;
   avatar_url: string | null;
+  is_vip: boolean | null;
+  vip_expires_at: string | null;
 }
 
 interface DownloadRecord {
@@ -56,7 +60,7 @@ const Profile = () => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, points, avatar_url')
+      .select('username, points, avatar_url, is_vip, vip_expires_at')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -154,6 +158,14 @@ const Profile = () => {
             </div>
           </div>
 
+          {/* VIP Status */}
+          <div className="mb-8">
+            <VipStatusCard 
+              isVip={profile?.is_vip || false} 
+              expiresAt={profile?.vip_expires_at || null} 
+            />
+          </div>
+
           {/* User Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card>
@@ -206,6 +218,10 @@ const Profile = () => {
               <TabsTrigger value="downloads">
                 <Download className="w-4 h-4 mr-2" />
                 下载记录
+              </TabsTrigger>
+              <TabsTrigger value="vip-orders">
+                <Crown className="w-4 h-4 mr-2" />
+                会员订单
               </TabsTrigger>
             </TabsList>
 
@@ -298,6 +314,10 @@ const Profile = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="vip-orders" className="mt-6">
+              <VipOrderHistory userId={user.id} />
             </TabsContent>
           </Tabs>
         </div>

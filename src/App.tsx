@@ -20,6 +20,8 @@ import AdminExams from "./pages/admin/AdminExams";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminVipOrders from "./pages/admin/AdminVipOrders";
+import VipMembership from "./pages/VipMembership";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,7 @@ const App = () => (
             <Route path="/exam/:slug" element={<ExamCategory />} />
             <Route path="/resource/:slug" element={<ResourceDetail />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/vip" element={<VipMembership />} />
             <Route path="/free" element={<Index />} />
             <Route path="/hot" element={<Index />} />
             <Route path="/new" element={<Index />} />
@@ -53,6 +56,7 @@ const App = () => (
               <Route path="resources" element={<AdminResources />} />
               <Route path="announcements" element={<AdminAnnouncements />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="vip-orders" element={<AdminVipOrders />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

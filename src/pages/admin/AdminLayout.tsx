@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Loader2, LayoutDashboard, FolderTree, GraduationCap, FileText, Megaphone, Settings, ArrowLeft, BookOpen } from 'lucide-react';
+import { Loader2, LayoutDashboard, FolderTree, GraduationCap, FileText, Megaphone, Settings, ArrowLeft, BookOpen, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const adminNavItems = [
@@ -12,6 +12,7 @@ const adminNavItems = [
   { label: '资料管理', href: '/admin/resources', icon: FileText },
   { label: '公告管理', href: '/admin/announcements', icon: Megaphone },
   { label: '网站设置', href: '/admin/settings', icon: Settings },
+  { label: 'VIP订单', href: '/admin/vip-orders', icon: Crown },
 ];
 
 const AdminLayout = () => {

@@ -25,11 +25,12 @@ const defaultSettings = {
   vip_price_yearly: 199,
   points_per_signup: 50,
   footer_text: '© 2024 考试资料网. All rights reserved.',
-   wechat_qr_code: '',
-   alipay_qr_code: '',
-   customer_service_wechat: '',
-   customer_service_phone: '400-888-8888',
-   customer_service_qr_code: '',
+  wechat_qr_code: '',
+  alipay_qr_code: '',
+  customer_service_wechat: '',
+  customer_service_phone: '400-888-8888',
+  customer_service_qr_code: '',
+  card_key_purchase_link: '',
 };
 
 const AdminSettings = () => {
@@ -97,11 +98,12 @@ const AdminSettings = () => {
       vip_price_yearly: 'VIP年费价格',
       points_per_signup: '注册赠送积分',
       footer_text: '页脚版权文字',
-       wechat_qr_code: '微信支付二维码URL',
-       alipay_qr_code: '支付宝支付二维码URL',
-       customer_service_wechat: '客服微信号',
-       customer_service_phone: '客服电话',
-       customer_service_qr_code: '客服微信二维码URL',
+      wechat_qr_code: '微信支付二维码URL',
+      alipay_qr_code: '支付宝支付二维码URL',
+      customer_service_wechat: '客服微信号',
+      customer_service_phone: '客服电话',
+      customer_service_qr_code: '客服微信二维码URL',
+      card_key_purchase_link: '卡密购买链接',
     };
     return descriptions[key] || key;
   };
@@ -242,41 +244,51 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
 
-         {/* Payment QR Codes */}
-         <Card>
-           <CardHeader>
-             <CardTitle>支付设置</CardTitle>
-             <CardDescription>配置微信/支付宝收款二维码</CardDescription>
-           </CardHeader>
-           <CardContent className="space-y-4">
-             <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <Label htmlFor="wechat_qr_code">微信支付二维码URL</Label>
-                 <Input
-                   id="wechat_qr_code"
-                   value={settings.wechat_qr_code}
-                   onChange={(e) => setSettings({ ...settings, wechat_qr_code: e.target.value })}
-                   placeholder="https://example.com/wechat-qr.png"
-                 />
-                 {settings.wechat_qr_code && (
-                   <img src={settings.wechat_qr_code} alt="微信二维码预览" className="w-24 h-24 rounded border mt-2" />
-                 )}
-               </div>
-               <div className="space-y-2">
-                 <Label htmlFor="alipay_qr_code">支付宝支付二维码URL</Label>
-                 <Input
-                   id="alipay_qr_code"
-                   value={settings.alipay_qr_code}
-                   onChange={(e) => setSettings({ ...settings, alipay_qr_code: e.target.value })}
-                   placeholder="https://example.com/alipay-qr.png"
-                 />
-                 {settings.alipay_qr_code && (
-                   <img src={settings.alipay_qr_code} alt="支付宝二维码预览" className="w-24 h-24 rounded border mt-2" />
-                 )}
-               </div>
-             </div>
-           </CardContent>
-         </Card>
+        {/* Payment QR Codes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>支付设置</CardTitle>
+            <CardDescription>配置微信/支付宝收款二维码及卡密购买链接</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="wechat_qr_code">微信支付二维码URL</Label>
+                <Input
+                  id="wechat_qr_code"
+                  value={settings.wechat_qr_code}
+                  onChange={(e) => setSettings({ ...settings, wechat_qr_code: e.target.value })}
+                  placeholder="https://example.com/wechat-qr.png"
+                />
+                {settings.wechat_qr_code && (
+                  <img src={settings.wechat_qr_code} alt="微信二维码预览" className="w-24 h-24 rounded border mt-2" />
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="alipay_qr_code">支付宝支付二维码URL</Label>
+                <Input
+                  id="alipay_qr_code"
+                  value={settings.alipay_qr_code}
+                  onChange={(e) => setSettings({ ...settings, alipay_qr_code: e.target.value })}
+                  placeholder="https://example.com/alipay-qr.png"
+                />
+                {settings.alipay_qr_code && (
+                  <img src={settings.alipay_qr_code} alt="支付宝二维码预览" className="w-24 h-24 rounded border mt-2" />
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="card_key_purchase_link">卡密购买链接</Label>
+              <Input
+                id="card_key_purchase_link"
+                value={settings.card_key_purchase_link}
+                onChange={(e) => setSettings({ ...settings, card_key_purchase_link: e.target.value })}
+                placeholder="https://example.com/buy-card-key"
+              />
+              <p className="text-xs text-muted-foreground">用户点击"购买卡密"按钮时跳转的链接</p>
+            </div>
+          </CardContent>
+        </Card>
 
          {/* Customer Service */}
          <Card>

@@ -7,17 +7,18 @@
  import { Button } from '@/components/ui/button';
  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
  import { useToast } from '@/hooks/use-toast';
- import { Loader2, Crown, Check, Sparkles, Clock, Shield, Download } from 'lucide-react';
+ import { Loader2, Crown, Check, Sparkles, Clock, Shield, Download, ExternalLink } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import { PaymentQRDialog } from '@/components/PaymentQRDialog';
  import { Input } from '@/components/ui/input';
  import { Label } from '@/components/ui/label';
  import { Gift } from 'lucide-react';
  
- interface SiteSettings {
-   vip_price_monthly: number;
-   vip_price_yearly: number;
- }
+interface SiteSettings {
+  vip_price_monthly: number;
+  vip_price_yearly: number;
+  card_key_purchase_link: string;
+}
  
  interface UserProfile {
    is_vip: boolean;
@@ -26,7 +27,7 @@
  
  const VipMembership = () => {
    const { user, isLoading: authLoading } = useAuth();
-   const [settings, setSettings] = useState<SiteSettings>({ vip_price_monthly: 29, vip_price_yearly: 199 });
+   const [settings, setSettings] = useState<SiteSettings>({ vip_price_monthly: 29, vip_price_yearly: 199, card_key_purchase_link: '' });
    const [profile, setProfile] = useState<UserProfile | null>(null);
    const [isLoading, setIsLoading] = useState(true);
    const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
@@ -43,22 +44,23 @@
    }, [user]);
  
    const fetchData = async () => {
-     // Fetch site settings
-     const { data: settingsData } = await supabase
-       .from('site_settings')
-       .select('key, value')
-       .in('key', ['vip_price_monthly', 'vip_price_yearly']);
- 
-     if (settingsData) {
-       const settingsMap: Record<string, number> = {};
-       settingsData.forEach((s) => {
-         settingsMap[s.key] = typeof s.value === 'number' ? s.value : parseInt(s.value as string) || 0;
-       });
-       setSettings({
-         vip_price_monthly: settingsMap.vip_price_monthly || 29,
-         vip_price_yearly: settingsMap.vip_price_yearly || 199,
-       });
-     }
+    // Fetch site settings
+    const { data: settingsData } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', ['vip_price_monthly', 'vip_price_yearly', 'card_key_purchase_link']);
+
+    if (settingsData) {
+      const settingsMap: Record<string, any> = {};
+      settingsData.forEach((s) => {
+        settingsMap[s.key] = s.value;
+      });
+      setSettings({
+        vip_price_monthly: typeof settingsMap.vip_price_monthly === 'number' ? settingsMap.vip_price_monthly : parseInt(settingsMap.vip_price_monthly as string) || 29,
+        vip_price_yearly: typeof settingsMap.vip_price_yearly === 'number' ? settingsMap.vip_price_yearly : parseInt(settingsMap.vip_price_yearly as string) || 199,
+        card_key_purchase_link: (settingsMap.card_key_purchase_link as string) || '',
+      });
+    }
  
      // Fetch user profile if logged in
      if (user) {
@@ -330,35 +332,48 @@
              </Card>
            </div>
  
-           {/* Subscribe Button */}
-           <div className="text-center">
-             <Button 
-               size="lg" 
-               className="bg-gradient-accent hover:opacity-90 text-white px-12 py-6 text-lg"
-               onClick={handleSubscribe}
-               disabled={isSubmitting}
-             >
-               {isSubmitting ? (
-                 <>
-                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                   处理中...
-                 </>
-               ) : isVipActive ? (
-                 <>
-                   <Crown className="w-5 h-5 mr-2" />
-                   续费会员
-                 </>
-               ) : (
-                 <>
-                   <Crown className="w-5 h-5 mr-2" />
-                   立即开通
-                 </>
-               )}
-             </Button>
-             <p className="text-sm text-muted-foreground mt-4">
-               支付完成后，请联系客服确认订单，会员权益将立即生效
-             </p>
-           </div>
+            {/* Subscribe Button */}
+            <div className="text-center space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-accent hover:opacity-90 text-white px-12 py-6 text-lg"
+                  onClick={handleSubscribe}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      处理中...
+                    </>
+                  ) : isVipActive ? (
+                    <>
+                      <Crown className="w-5 h-5 mr-2" />
+                      续费会员
+                    </>
+                  ) : (
+                    <>
+                      <Crown className="w-5 h-5 mr-2" />
+                      立即开通
+                    </>
+                  )}
+                </Button>
+                {settings.card_key_purchase_link && (
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="px-12 py-6 text-lg"
+                    onClick={() => window.open(settings.card_key_purchase_link, '_blank')}
+                  >
+                    <ExternalLink className="w-5 h-5 mr-2" />
+                    购买卡密开通
+                  </Button>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                支付完成后，请联系客服确认订单，会员权益将立即生效
+              </p>
+            </div>
 
              {/* Invitation Code Section */}
              <div className="border-t pt-8 mt-8">

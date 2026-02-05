@@ -37,11 +37,12 @@
    const [isSaving, setIsSaving] = useState(false);
    const { toast } = useToast();
  
-   // Form state
-   const [newCode, setNewCode] = useState(generateRandomCode());
-   const [planType, setPlanType] = useState('monthly');
-   const [maxUses, setMaxUses] = useState(1);
-   const [expiresAt, setExpiresAt] = useState('');
+  // Form state
+  const [newCode, setNewCode] = useState(generateRandomCode());
+  const [planType, setPlanType] = useState('monthly');
+  const [maxUses, setMaxUses] = useState(1);
+  const [expiresAt, setExpiresAt] = useState('');
+  const [batchCount, setBatchCount] = useState(1);
  
    useEffect(() => {
      fetchCodes();
@@ -59,36 +60,57 @@
      setIsLoading(false);
    };
  
-   const handleCreate = async () => {
-     if (!newCode.trim()) {
-       toast({ title: '请输入邀请码', variant: 'destructive' });
-       return;
-     }
- 
-     setIsSaving(true);
- 
-     const { error } = await supabase.from('invitation_codes').insert({
-       code: newCode.toUpperCase(),
-       plan_type: planType,
-       max_uses: maxUses,
-       expires_at: expiresAt || null,
-     });
- 
-     setIsSaving(false);
- 
-     if (error) {
-       toast({ title: '创建失败', description: error.message, variant: 'destructive' });
-       return;
-     }
- 
-     toast({ title: '邀请码创建成功' });
-     setIsDialogOpen(false);
-     setNewCode(generateRandomCode());
-     setPlanType('monthly');
-     setMaxUses(1);
-     setExpiresAt('');
-     fetchCodes();
-   };
+  const handleCreate = async () => {
+    if (batchCount === 1 && !newCode.trim()) {
+      toast({ title: '请输入邀请码', variant: 'destructive' });
+      return;
+    }
+
+    if (batchCount < 1 || batchCount > 100) {
+      toast({ title: '批量生成数量需在1-100之间', variant: 'destructive' });
+      return;
+    }
+
+    setIsSaving(true);
+
+    // Generate codes to insert
+    const codesToInsert = [];
+    if (batchCount === 1) {
+      codesToInsert.push({
+        code: newCode.toUpperCase(),
+        plan_type: planType,
+        max_uses: maxUses,
+        expires_at: expiresAt || null,
+      });
+    } else {
+      for (let i = 0; i < batchCount; i++) {
+        codesToInsert.push({
+          code: generateRandomCode(),
+          plan_type: planType,
+          max_uses: maxUses,
+          expires_at: expiresAt || null,
+        });
+      }
+    }
+
+    const { error } = await supabase.from('invitation_codes').insert(codesToInsert);
+
+    setIsSaving(false);
+
+    if (error) {
+      toast({ title: '创建失败', description: error.message, variant: 'destructive' });
+      return;
+    }
+
+    toast({ title: batchCount === 1 ? '邀请码创建成功' : `成功生成 ${batchCount} 个邀请码` });
+    setIsDialogOpen(false);
+    setNewCode(generateRandomCode());
+    setPlanType('monthly');
+    setMaxUses(1);
+    setExpiresAt('');
+    setBatchCount(1);
+    fetchCodes();
+  };
  
    const handleDelete = async (id: string) => {
      if (!confirm('确定要删除这个邀请码吗？')) return;
@@ -149,20 +171,34 @@
              <DialogHeader>
                <DialogTitle>生成邀请码</DialogTitle>
              </DialogHeader>
-             <div className="space-y-4 py-4">
-               <div className="space-y-2">
-                 <Label>邀请码</Label>
-                 <div className="flex gap-2">
-                   <Input
-                     value={newCode}
-                     onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                     placeholder="输入或自动生成"
-                   />
-                   <Button variant="outline" onClick={() => setNewCode(generateRandomCode())}>
-                     随机
-                   </Button>
-                 </div>
-               </div>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>批量生成数量</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={batchCount}
+                  onChange={(e) => setBatchCount(parseInt(e.target.value) || 1)}
+                  placeholder="1-100"
+                />
+                <p className="text-xs text-muted-foreground">输入1为单个生成，大于1则批量随机生成</p>
+              </div>
+              {batchCount === 1 && (
+                <div className="space-y-2">
+                  <Label>邀请码</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newCode}
+                      onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                      placeholder="输入或自动生成"
+                    />
+                    <Button variant="outline" onClick={() => setNewCode(generateRandomCode())}>
+                      随机
+                    </Button>
+                  </div>
+                </div>
+              )}
                <div className="space-y-2">
                  <Label>会员类型</Label>
                  <Select value={planType} onValueChange={setPlanType}>

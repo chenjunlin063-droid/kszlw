@@ -9,6 +9,10 @@
  import { useToast } from '@/hooks/use-toast';
  import { Loader2, Crown, Check, Sparkles, Clock, Shield, Download } from 'lucide-react';
  import { cn } from '@/lib/utils';
+ import { PaymentQRDialog } from '@/components/PaymentQRDialog';
+ import { Input } from '@/components/ui/input';
+ import { Label } from '@/components/ui/label';
+ import { Gift } from 'lucide-react';
  
  interface SiteSettings {
    vip_price_monthly: number;
@@ -27,6 +31,10 @@
    const [isLoading, setIsLoading] = useState(true);
    const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
    const [isSubmitting, setIsSubmitting] = useState(false);
+   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+   const [currentOrderId, setCurrentOrderId] = useState<string>('');
+   const [invitationCode, setInvitationCode] = useState('');
+   const [isValidatingCode, setIsValidatingCode] = useState(false);
    const navigate = useNavigate();
    const { toast } = useToast();
  
@@ -101,15 +109,97 @@
        return;
      }
  
-     toast({
-       title: '订单已创建',
-       description: '请联系客服完成支付，支付后会员将自动开通',
-     });
+     // Show payment dialog
+     setCurrentOrderId(data.id);
+     setShowPaymentDialog(true);
+   };
  
-     // Navigate to profile to see order status
+   const handleUseInvitationCode = async () => {
+     if (!user) {
+       navigate('/auth');
+       return;
+     }
+
+     if (!invitationCode.trim()) {
+       toast({ title: '请输入邀请码', variant: 'destructive' });
+       return;
+     }
+
+     setIsValidatingCode(true);
+
+     // Validate invitation code
+     const { data: codeData, error: codeError } = await supabase
+       .from('invitation_codes')
+       .select('*')
+       .eq('code', invitationCode.toUpperCase())
+       .eq('is_active', true)
+       .maybeSingle();
+
+     if (codeError || !codeData) {
+       setIsValidatingCode(false);
+       toast({ title: '邀请码无效', description: '请检查邀请码是否正确', variant: 'destructive' });
+       return;
+     }
+
+     // Check if code has remaining uses
+     if (codeData.used_count >= codeData.max_uses) {
+       setIsValidatingCode(false);
+       toast({ title: '邀请码已用完', variant: 'destructive' });
+       return;
+     }
+
+     // Check expiration
+     if (codeData.expires_at && new Date(codeData.expires_at) < new Date()) {
+       setIsValidatingCode(false);
+       toast({ title: '邀请码已过期', variant: 'destructive' });
+       return;
+     }
+
+     // Create a paid order directly
+     const { error: orderError } = await supabase.from('vip_orders').insert({
+       user_id: user.id,
+       plan_type: codeData.plan_type,
+       amount: 0,
+       status: 'paid',
+       payment_method: 'invitation_code',
+       payment_reference: codeData.code,
+     });
+
+     if (orderError) {
+       setIsValidatingCode(false);
+       toast({ title: '激活失败', description: orderError.message, variant: 'destructive' });
+       return;
+     }
+
+     // Update code usage count
+     await supabase
+       .from('invitation_codes')
+       .update({ used_count: codeData.used_count + 1 })
+       .eq('id', codeData.id);
+
+     // Record code usage
+     await supabase.from('invitation_code_uses').insert({
+       code_id: codeData.id,
+       user_id: user.id,
+     });
+
+     setIsValidatingCode(false);
+     toast({
+       title: '🎉 会员激活成功',
+       description: `您已成功开通${codeData.plan_type === 'yearly' ? '年度' : '月度'}会员`,
+     });
+
      navigate('/profile');
    };
  
+   const handlePaymentConfirmed = () => {
+     toast({
+       title: '支付确认成功',
+       description: '您的会员已成功开通！',
+     });
+     navigate('/profile');
+   };
+
    const isVipActive = profile?.is_vip && profile?.vip_expires_at && new Date(profile.vip_expires_at) > new Date();
  
    if (authLoading || isLoading) {
@@ -269,9 +359,51 @@
                支付完成后，请联系客服确认订单，会员权益将立即生效
              </p>
            </div>
+
+             {/* Invitation Code Section */}
+             <div className="border-t pt-8 mt-8">
+               <div className="text-center mb-6">
+                 <h2 className="text-xl font-semibold flex items-center justify-center gap-2">
+                   <Gift className="w-5 h-5 text-accent" />
+                   使用邀请码
+                 </h2>
+                 <p className="text-sm text-muted-foreground mt-1">
+                   有邀请码？输入后立即免费开通会员
+                 </p>
+               </div>
+               <div className="max-w-sm mx-auto flex gap-2">
+                 <Input
+                   placeholder="请输入邀请码"
+                   value={invitationCode}
+                   onChange={(e) => setInvitationCode(e.target.value.toUpperCase())}
+                   className="text-center font-mono text-lg tracking-wider"
+                 />
+                 <Button
+                   onClick={handleUseInvitationCode}
+                   disabled={isValidatingCode || !invitationCode.trim()}
+                   variant="outline"
+                 >
+                   {isValidatingCode ? (
+                     <Loader2 className="w-4 h-4 animate-spin" />
+                   ) : (
+                     '激活'
+                   )}
+                 </Button>
+               </div>
+             </div>
          </div>
        </main>
        <Footer />
+
+         {/* Payment QR Dialog */}
+         <PaymentQRDialog
+           open={showPaymentDialog}
+           onOpenChange={setShowPaymentDialog}
+           orderId={currentOrderId}
+           planType={selectedPlan}
+           amount={selectedPlan === 'monthly' ? settings.vip_price_monthly : settings.vip_price_yearly}
+           onPaymentConfirmed={handlePaymentConfirmed}
+         />
      </div>
    );
  };

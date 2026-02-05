@@ -22,6 +22,7 @@ import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminVipOrders from "./pages/admin/AdminVipOrders";
 import VipMembership from "./pages/VipMembership";
+import AdminInvitationCodes from "./pages/admin/AdminInvitationCodes";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="announcements" element={<AdminAnnouncements />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="vip-orders" element={<AdminVipOrders />} />
+              <Route path="invitation-codes" element={<AdminInvitationCodes />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

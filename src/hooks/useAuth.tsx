@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   isAdmin: boolean;
   isLoading: boolean;
-  signUp: (email: string, password: string, username?: string) => Promise<{ error: Error | null }>;
+   signUp: (email: string, password: string, username?: string) => Promise<{ error: Error | null; data?: { user: User | null } }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
-    return { error: error as Error | null };
+     return { error: error as Error | null, data: data };
   };
 
   const signIn = async (email: string, password: string) => {

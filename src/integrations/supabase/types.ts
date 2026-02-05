@@ -346,6 +346,45 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          plan_type: string
+          status: Database["public"]["Enums"]["vip_order_status"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_type: string
+          status?: Database["public"]["Enums"]["vip_order_status"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_type?: string
+          status?: Database["public"]["Enums"]["vip_order_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -363,6 +402,7 @@ export type Database = {
       access_type: "免费" | "积分" | "兑换码" | "VIP"
       app_role: "admin" | "moderator" | "user"
       resource_type: "真题" | "课件" | "押题" | "教材" | "其他"
+      vip_order_status: "pending" | "paid" | "cancelled" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -493,6 +533,7 @@ export const Constants = {
       access_type: ["免费", "积分", "兑换码", "VIP"],
       app_role: ["admin", "moderator", "user"],
       resource_type: ["真题", "课件", "押题", "教材", "其他"],
+      vip_order_status: ["pending", "paid", "cancelled", "expired"],
     },
   },
 } as const

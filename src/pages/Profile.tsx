@@ -14,6 +14,7 @@ import { Loader2, User, Mail, Coins, Download, Settings, LogOut, Shield, Crown }
 import { Link } from 'react-router-dom';
 import { VipStatusCard } from '@/components/profile/VipStatusCard';
 import { VipOrderHistory } from '@/components/profile/VipOrderHistory';
+import { InvitationCodeRedemption } from '@/components/profile/InvitationCodeRedemption';
 
 interface Profile {
   username: string | null;
@@ -159,10 +160,14 @@ const Profile = () => {
           </div>
 
           {/* VIP Status */}
-          <div className="mb-8">
+          <div className="space-y-4 mb-8">
             <VipStatusCard 
               isVip={profile?.is_vip || false} 
               expiresAt={profile?.vip_expires_at || null} 
+            />
+            <InvitationCodeRedemption 
+              userId={user.id} 
+              onSuccess={fetchProfile} 
             />
           </div>
 

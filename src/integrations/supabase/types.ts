@@ -182,6 +182,71 @@ export type Database = {
           },
         ]
       }
+      invitation_code_uses: {
+        Row: {
+          code_id: string
+          id: string
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          code_id: string
+          id?: string
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          code_id?: string
+          id?: string
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_code_uses_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "invitation_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitation_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number
+          plan_type: string
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number
+          plan_type?: string
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number
+          plan_type?: string
+          used_count?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

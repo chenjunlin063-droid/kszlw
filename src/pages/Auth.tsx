@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
+ import { Gift } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,6 +32,7 @@ const Auth = () => {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerUsername, setRegisterUsername] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+   const [invitationCode, setInvitationCode] = useState('');
 
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -152,7 +154,7 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(registerEmail, registerPassword, registerUsername);
+     const { error, data } = await signUp(registerEmail, registerPassword, registerUsername);
     setIsLoading(false);
 
     if (error) {
@@ -166,12 +168,75 @@ const Auth = () => {
         variant: 'destructive',
       });
     } else {
+       // If invitation code provided, try to activate VIP
+       if (invitationCode.trim() && data?.user) {
+         await activateInvitationCode(data.user.id);
+       }
       toast({
         title: '注册成功',
         description: '请检查您的邮箱以验证账户（也可能直接登录成功）',
       });
     }
   };
+
+   const activateInvitationCode = async (userId: string) => {
+     // Validate invitation code
+     const { data: codeData, error: codeError } = await supabase
+       .from('invitation_codes')
+       .select('*')
+       .eq('code', invitationCode.toUpperCase())
+       .eq('is_active', true)
+       .maybeSingle();
+
+     if (codeError || !codeData) {
+       toast({ title: '邀请码无效', description: '邀请码无效，但注册已成功', variant: 'destructive' });
+       return;
+     }
+
+     // Check if code has remaining uses
+     if (codeData.used_count >= codeData.max_uses) {
+       toast({ title: '邀请码已用完', description: '邀请码已用完，但注册已成功' });
+       return;
+     }
+
+     // Check expiration
+     if (codeData.expires_at && new Date(codeData.expires_at) < new Date()) {
+       toast({ title: '邀请码已过期', description: '邀请码已过期，但注册已成功' });
+       return;
+     }
+
+     // Create a paid order
+     const { error: orderError } = await supabase.from('vip_orders').insert({
+       user_id: userId,
+       plan_type: codeData.plan_type,
+       amount: 0,
+       status: 'paid',
+       payment_method: 'invitation_code',
+       payment_reference: codeData.code,
+     });
+
+     if (orderError) {
+       console.error('Failed to activate VIP:', orderError);
+       return;
+     }
+
+     // Update code usage count
+     await supabase
+       .from('invitation_codes')
+       .update({ used_count: codeData.used_count + 1 })
+       .eq('id', codeData.id);
+
+     // Record code usage
+     await supabase.from('invitation_code_uses').insert({
+       code_id: codeData.id,
+       user_id: userId,
+     });
+
+     toast({
+       title: '🎉 VIP会员已激活',
+       description: `恭喜！您已通过邀请码获得${codeData.plan_type === 'yearly' ? '年度' : '月度'}会员`,
+     });
+   };
 
   return (
     <div className="min-h-screen bg-background">
@@ -334,6 +399,20 @@ const Auth = () => {
                     <p className="text-xs text-muted-foreground text-center">
                       🎁 新用户注册即送50积分
                     </p>
+                     <div className="space-y-2 pt-2 border-t">
+                       <Label htmlFor="invitation-code" className="text-xs text-muted-foreground flex items-center gap-1">
+                         <Gift className="w-3 h-3" />
+                         邀请码（可选）
+                       </Label>
+                       <Input
+                         id="invitation-code"
+                         type="text"
+                         placeholder="有邀请码？输入后注册即可获得会员"
+                         value={invitationCode}
+                         onChange={(e) => setInvitationCode(e.target.value.toUpperCase())}
+                         className="font-mono tracking-wider"
+                       />
+                     </div>
                   </form>
                 </TabsContent>
               </Tabs>

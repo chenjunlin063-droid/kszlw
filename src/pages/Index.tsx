@@ -156,33 +156,33 @@ const Index = () => {
       <Header />
 
       {/* Hero Section with Search */}
-      <section className="bg-gradient-primary py-12 md:py-16">
+      <section className="bg-gradient-primary py-8 md:py-16">
         <div className="container">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-4xl font-bold text-primary-foreground mb-3">
+          <div className="text-center mb-6 md:mb-8">
+            <h2 className="text-xl md:text-4xl font-bold text-primary-foreground mb-2 md:mb-3">
               专业备考资料，助你一次通过
             </h2>
-            <p className="text-primary-foreground/80 text-lg">
+            <p className="text-primary-foreground/80 text-sm md:text-lg">
               汇集全网最新考试真题、精品课件、押题密卷
             </p>
           </div>
           <SearchBar variant="hero" />
           
           {/* Quick stats */}
-          <div className="flex items-center justify-center gap-8 mt-8 text-primary-foreground/90">
+          <div className="flex items-center justify-center gap-4 md:gap-8 mt-6 md:mt-8 text-primary-foreground/90">
             <div className="text-center">
-              <div className="text-2xl font-bold">{stats.resources.toLocaleString()}+</div>
-              <div className="text-sm">优质资料</div>
+              <div className="text-lg md:text-2xl font-bold">{stats.resources.toLocaleString()}+</div>
+              <div className="text-xs md:text-sm">优质资料</div>
             </div>
-            <div className="w-px h-10 bg-primary-foreground/30" />
+            <div className="w-px h-8 md:h-10 bg-primary-foreground/30" />
             <div className="text-center">
-              <div className="text-2xl font-bold">{stats.categories}+</div>
-              <div className="text-sm">考试类型</div>
+              <div className="text-lg md:text-2xl font-bold">{stats.categories}+</div>
+              <div className="text-xs md:text-sm">考试类型</div>
             </div>
-            <div className="w-px h-10 bg-primary-foreground/30" />
+            <div className="w-px h-8 md:h-10 bg-primary-foreground/30" />
             <div className="text-center">
-              <div className="text-2xl font-bold">{stats.downloads.toLocaleString()}+</div>
-              <div className="text-sm">下载次数</div>
+              <div className="text-lg md:text-2xl font-bold">{stats.downloads.toLocaleString()}+</div>
+              <div className="text-xs md:text-sm">下载次数</div>
             </div>
           </div>
         </div>
@@ -190,12 +190,12 @@ const Index = () => {
 
       {/* Countdown Section */}
       {exams.length > 0 && (
-        <section className="py-8 bg-muted/50">
+        <section className="py-4 md:py-8 bg-muted/50">
           <div className="container">
-            <div className="section-title">
+            <div className="section-title text-base md:text-xl">
               <span>考试倒计时</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
               {exams.map((exam) => (
                 <ExamCountdown
                   key={exam.id}
@@ -209,24 +209,24 @@ const Index = () => {
         </section>
       )}
 
-      <div className="container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container py-4 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-5 md:space-y-8">
             {/* Today's New Resources */}
             {newResources.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="section-title">
-                    <TrendingUp className="w-5 h-5 text-primary" />
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <div className="section-title text-base md:text-xl mb-0">
+                    <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                     <span>今日更新</span>
-                    <span className="tag-new ml-2">+{newResources.length}</span>
+                    <span className="tag-new ml-1 md:ml-2">+{newResources.length}</span>
                   </div>
-                  <Link to="/new" className="text-sm text-primary hover:underline flex items-center gap-1">
-                    查看全部 <ChevronRight className="w-4 h-4" />
+                  <Link to="/new" className="text-xs md:text-sm text-primary hover:underline flex items-center gap-1">
+                    查看全部 <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                   </Link>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-1.5 md:space-y-3">
                   {newResources.map((resource) => (
                     <ResourceCard 
                       key={resource.id} 
@@ -249,16 +249,16 @@ const Index = () => {
             {/* Hot Resources */}
             {hotResources.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="section-title">
-                    <Flame className="w-5 h-5 text-accent" />
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <div className="section-title text-base md:text-xl mb-0">
+                    <Flame className="w-4 h-4 md:w-5 md:h-5 text-accent" />
                     <span>热门下载</span>
                   </div>
-                  <Link to="/hot" className="text-sm text-primary hover:underline flex items-center gap-1">
-                    查看全部 <ChevronRight className="w-4 h-4" />
+                  <Link to="/hot" className="text-xs md:text-sm text-primary hover:underline flex items-center gap-1">
+                    查看全部 <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                   </Link>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-1.5 md:space-y-3">
                   {hotResources.map((resource) => (
                     <ResourceCard 
                       key={resource.id} 
@@ -281,16 +281,16 @@ const Index = () => {
             {/* Free Resources */}
             {freeResources.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="section-title">
-                    <Gift className="w-5 h-5 text-success" />
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <div className="section-title text-base md:text-xl mb-0">
+                    <Gift className="w-4 h-4 md:w-5 md:h-5 text-success" />
                     <span>免费专区</span>
                   </div>
-                  <Link to="/free" className="text-sm text-primary hover:underline flex items-center gap-1">
-                    查看全部 <ChevronRight className="w-4 h-4" />
+                  <Link to="/free" className="text-xs md:text-sm text-primary hover:underline flex items-center gap-1">
+                    查看全部 <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                   </Link>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-1.5 md:space-y-3">
                   {freeResources.map((resource) => (
                     <ResourceCard 
                       key={resource.id} 
@@ -312,9 +312,9 @@ const Index = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-4 lg:grid-cols-2 gap-2 md:gap-4">
               <StatsCard
                 icon={<FileText className="w-6 h-6" />}
                 value={stats.resources.toLocaleString()}
@@ -355,7 +355,7 @@ const Index = () => {
             </div>
 
             {/* Promo Card */}
-            <div className="bg-gradient-accent rounded-xl p-6 text-white">
+            <div className="bg-gradient-accent rounded-xl p-4 md:p-6 text-white hidden md:block">
               <h3 className="text-lg font-bold mb-2">📚 教材代发服务</h3>
               <p className="text-sm text-white/90 mb-4">
                 官方正版教材，全国包邮，下单即送配套电子资料
@@ -366,7 +366,7 @@ const Index = () => {
             </div>
 
             {/* VIP Card */}
-            <div className="bg-card rounded-xl p-6 border border-border">
+            <div className="bg-card rounded-xl p-4 md:p-6 border border-border hidden md:block">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">👑</span>
                 <h3 className="text-lg font-bold text-foreground">开通VIP会员</h3>

@@ -1,7 +1,8 @@
-import { Download, Eye, FileText } from "lucide-react";
+import { Download, Eye, FileText, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ResourceCardProps {
   id: string;
@@ -28,6 +29,8 @@ export const ResourceCard = ({
   isNew,
   slug,
 }: ResourceCardProps) => {
+  const isMobile = useIsMobile();
+
   const getAccessTypeClass = (type: string) => {
     switch (type) {
       case "免费":
@@ -41,15 +44,33 @@ export const ResourceCard = ({
     }
   };
 
-  const getResourceTypeIcon = (type: string) => {
-    return <FileText className="w-4 h-4" />;
-  };
+  // Mobile: compact title-based list
+  if (isMobile) {
+    return (
+      <Link to={`/resource/${slug}`} className="block">
+        <div className="flex items-center gap-2 py-2.5 px-3 bg-card rounded-lg border border-border group">
+          <div className="flex-1 min-w-0 flex items-center gap-1.5">
+            {isNew && <span className="tag-new flex-shrink-0 text-[10px] px-1.5 py-0">新</span>}
+            {isHot && <span className="tag-hot flex-shrink-0 text-[10px] px-1.5 py-0">热</span>}
+            <span className={`flex-shrink-0 text-[10px] px-1.5 py-0 rounded ${getAccessTypeClass(accessType)}`}>
+              {accessType}
+            </span>
+            <h3 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+              {title}
+            </h3>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        </div>
+      </Link>
+    );
+  }
 
+  // Desktop: full card layout
   return (
     <Link to={`/resource/${slug}`} className="block">
       <div className="resource-item group">
         <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-          {getResourceTypeIcon(resourceType)}
+          <FileText className="w-4 h-4" />
         </div>
         
         <div className="flex-1 min-w-0">

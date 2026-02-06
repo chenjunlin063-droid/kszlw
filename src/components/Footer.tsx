@@ -37,13 +37,8 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/promotions" className="text-sm text-background/70 hover:text-background transition-colors">
-                  优惠活动
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-sm text-background/70 hover:text-background transition-colors">
-                  关于我们
+                <Link to="/vip" className="text-sm text-background/70 hover:text-background transition-colors">
+                  会员开通
                 </Link>
               </li>
             </ul>

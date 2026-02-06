@@ -10,8 +10,7 @@ const navItems = [
   { label: "首页", href: "/" },
   { label: "考试分类", href: "/categories" },
   { label: "免费专区", href: "/free" },
-  { label: "优惠活动", href: "/promotions" },
-  { label: "关于我们", href: "/about" },
+  { label: "会员开通", href: "/vip" },
 ];
 
 export const Header = () => {

@@ -360,9 +360,11 @@ const Index = () => {
               <p className="text-sm text-white/90 mb-4">
                 官方正版教材，全国包邮，下单即送配套电子资料
               </p>
-              <Button variant="secondary" className="w-full bg-white text-accent hover:bg-white/90">
-                立即购买
-              </Button>
+              <Link to="/categories">
+                <Button variant="secondary" className="w-full bg-white text-accent hover:bg-white/90">
+                  浏览资料
+                </Button>
+              </Link>
             </div>
 
             {/* VIP Card */}
@@ -385,9 +387,11 @@ const Index = () => {
                   优先获取最新资料
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-primary hover:opacity-90">
-                立即开通
-              </Button>
+              <Link to="/vip">
+                <Button className="w-full bg-gradient-primary hover:opacity-90">
+                  立即开通
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

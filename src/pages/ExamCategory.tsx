@@ -158,19 +158,19 @@ const ExamCategory = () => {
 
       {/* Exam Header */}
       <div className="bg-card border-b border-border">
-        <div className="container py-6">
-          <div className="flex items-start gap-4">
-            <div className="text-5xl">{exam.icon || "📝"}</div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-foreground">{exam.name}</h1>
-                {exam.category && <Badge variant="outline">{exam.category.name}</Badge>}
+        <div className="container py-4 md:py-6">
+          <div className="flex items-start gap-3 md:gap-4">
+            <div className="text-3xl md:text-5xl">{exam.icon || "📝"}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2 flex-wrap">
+                <h1 className="text-lg md:text-2xl font-bold text-foreground">{exam.name}</h1>
+                {exam.category && <Badge variant="outline" className="text-[10px] md:text-xs">{exam.category.name}</Badge>}
               </div>
-              <p className="text-muted-foreground mb-3">{exam.description || "暂无描述"}</p>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <p className="text-xs md:text-base text-muted-foreground mb-2 md:mb-3 line-clamp-2">{exam.description || "暂无描述"}</p>
+              <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
                 <span>共 <strong className="text-primary">{totalResources}</strong> 份资料</span>
                 <span>|</span>
-                <span>本页显示 <strong>{filteredResources.length}</strong> 份</span>
+                <span>显示 <strong>{filteredResources.length}</strong> 份</span>
               </div>
             </div>
           </div>
@@ -178,18 +178,18 @@ const ExamCategory = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-card border-b border-border sticky top-16 z-40">
-        <div className="container py-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
+      <div className="bg-card border-b border-border sticky top-14 md:top-16 z-40">
+        <div className="container py-2 md:py-4">
+          <div className="flex flex-col md:flex-row md:flex-wrap md:items-center gap-2 md:gap-4">
+            <div className="hidden md:flex items-center gap-2">
               <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">筛选：</span>
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">年份：</span>
+              <span className="text-xs md:text-sm text-muted-foreground flex-shrink-0">年份：</span>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-24 h-8">
+                <SelectTrigger className="w-20 md:w-24 h-7 md:h-8 text-xs md:text-sm">
                   <SelectValue placeholder="全部" />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,8 +201,8 @@ const ExamCategory = () => {
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">类型：</span>
+            <div className="flex items-center gap-2 overflow-x-auto">
+              <span className="text-xs md:text-sm text-muted-foreground flex-shrink-0">类型：</span>
               <div className="flex gap-1">
                 {resourceTypes.map((type) => (
                   <Button
@@ -210,7 +210,7 @@ const ExamCategory = () => {
                     variant={selectedType === type ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedType(type)}
-                    className="h-8"
+                    className="h-6 md:h-8 text-[10px] md:text-sm px-2 md:px-3 flex-shrink-0"
                   >
                     {type}
                   </Button>
@@ -219,7 +219,7 @@ const ExamCategory = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">权限：</span>
+              <span className="text-xs md:text-sm text-muted-foreground flex-shrink-0">权限：</span>
               <div className="flex gap-1">
                 {accessTypes.map((type) => (
                   <Button
@@ -227,7 +227,7 @@ const ExamCategory = () => {
                     variant={selectedAccess === type ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedAccess(type)}
-                    className="h-8"
+                    className="h-6 md:h-8 text-[10px] md:text-sm px-2 md:px-3 flex-shrink-0"
                   >
                     {type}
                   </Button>

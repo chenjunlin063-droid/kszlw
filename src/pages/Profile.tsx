@@ -139,22 +139,23 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-8">
+      <main className="container py-4 md:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">个人中心</h1>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <h1 className="text-xl md:text-2xl font-bold">个人中心</h1>
+            <div className="flex items-center gap-1.5 md:gap-2">
               {isAdmin && (
                 <Link to="/admin">
-                  <Button variant="outline" size="sm">
-                    <Shield className="w-4 h-4 mr-2" />
-                    管理后台
+                  <Button variant="outline" size="sm" className="h-8 text-xs md:text-sm">
+                    <Shield className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    <span className="hidden sm:inline">管理后台</span>
+                    <span className="sm:hidden">管理</span>
                   </Button>
                 </Link>
               )}
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className="w-4 h-4 mr-2" />
-                退出登录
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="h-8 text-xs md:text-sm">
+                <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                退出
               </Button>
             </div>
           </div>
@@ -172,42 +173,42 @@ const Profile = () => {
           </div>
 
           {/* User Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-8">
             <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <User className="w-6 h-6 text-primary" />
+              <CardContent className="pt-4 md:pt-6 px-3 md:px-6 pb-4">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 text-center md:text-left">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">用户名</p>
-                    <p className="font-semibold">{profile?.username || '未设置'}</p>
+                  <div className="min-w-0">
+                    <p className="text-[10px] md:text-sm text-muted-foreground">用户名</p>
+                    <p className="font-semibold text-xs md:text-base truncate">{profile?.username || '未设置'}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
-                    <Coins className="w-6 h-6 text-accent" />
+              <CardContent className="pt-4 md:pt-6 px-3 md:px-6 pb-4">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 text-center md:text-left">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Coins className="w-5 h-5 md:w-6 md:h-6 text-accent" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">我的积分</p>
-                    <p className="font-semibold text-lg">{profile?.points || 0}</p>
+                    <p className="text-[10px] md:text-sm text-muted-foreground">积分</p>
+                    <p className="font-semibold text-sm md:text-lg">{profile?.points || 0}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center">
-                    <Download className="w-6 h-6 text-success" />
+              <CardContent className="pt-4 md:pt-6 px-3 md:px-6 pb-4">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 text-center md:text-left">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-success/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Download className="w-5 h-5 md:w-6 md:h-6 text-success" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">下载次数</p>
-                    <p className="font-semibold">{downloads.length}</p>
+                    <p className="text-[10px] md:text-sm text-muted-foreground">下载</p>
+                    <p className="font-semibold text-sm md:text-base">{downloads.length}</p>
                   </div>
                 </div>
               </CardContent>

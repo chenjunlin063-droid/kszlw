@@ -226,18 +226,18 @@ interface SiteSettings {
    return (
      <div className="min-h-screen bg-background">
        <Header />
-       <main className="container py-8">
-         <div className="max-w-4xl mx-auto">
-           {/* Hero Section */}
-           <div className="text-center mb-12">
-             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-accent mb-6">
-               <Crown className="w-10 h-10 text-white" />
-             </div>
-             <h1 className="text-3xl font-bold mb-4">开通VIP会员</h1>
-             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-               解锁全站VIP专属资料，畅享无限下载，助力考试成功
-             </p>
-           </div>
+        <main className="container py-4 md:py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Hero Section */}
+            <div className="text-center mb-6 md:mb-12">
+              <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-full bg-gradient-accent mb-4 md:mb-6">
+                <Crown className="w-7 h-7 md:w-10 md:h-10 text-white" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4">开通VIP会员</h1>
+              <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto">
+                解锁全站VIP专属资料，畅享无限下载
+              </p>
+            </div>
  
            {/* Current VIP Status */}
            {isVipActive && (
@@ -259,7 +259,7 @@ interface SiteSettings {
            )}
  
            {/* Pricing Cards */}
-           <div className="grid md:grid-cols-2 gap-6 mb-12">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
              {/* Monthly Plan */}
              <Card 
                className={cn(

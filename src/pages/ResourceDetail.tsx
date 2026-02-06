@@ -248,18 +248,18 @@ const ResourceDetail = () => {
         </div>
       </div>
 
-      <div className="container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container py-4 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Title Section */}
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
-                    <FileText className="w-8 h-8" />
+            <Card className="mb-4 md:mb-6">
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-start gap-3 md:gap-4">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/10 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
+                    <FileText className="w-6 h-6 md:w-8 md:h-8" />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
                       {resource.is_new && <span className="tag-new">新</span>}
                       {resource.is_hot && <span className="tag-hot">热</span>}
@@ -267,20 +267,20 @@ const ResourceDetail = () => {
                         {resource.access_type}
                       </span>
                     </div>
-                    <h1 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+                    <h1 className="text-lg md:text-2xl font-bold text-foreground mb-2 md:mb-3">
                       {resource.title}
                     </h1>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
                       {resource.exam && (
                         <span className="flex items-center gap-1">
-                          <BookOpen className="w-4 h-4" />
+                          <BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           {resource.exam.name}
                         </span>
                       )}
-                      <Badge variant="outline">{resource.resource_type}</Badge>
+                      <Badge variant="outline" className="text-[10px] md:text-xs">{resource.resource_type}</Badge>
                       {resource.year && (
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           {resource.year}年
                         </span>
                       )}
@@ -288,24 +288,24 @@ const ResourceDetail = () => {
                   </div>
                 </div>
 
-                <Separator className="my-6" />
+                <Separator className="my-4 md:my-6" />
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div className="grid grid-cols-4 gap-2 md:gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{(resource.download_count || 0).toLocaleString()}</div>
-                    <div className="text-sm text-muted-foreground">下载次数</div>
+                    <div className="text-base md:text-2xl font-bold text-foreground">{(resource.download_count || 0).toLocaleString()}</div>
+                    <div className="text-[10px] md:text-sm text-muted-foreground">下载</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{viewCount.toLocaleString()}</div>
-                    <div className="text-sm text-muted-foreground">浏览次数</div>
+                    <div className="text-base md:text-2xl font-bold text-foreground">{viewCount.toLocaleString()}</div>
+                    <div className="text-[10px] md:text-sm text-muted-foreground">浏览</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{resource.file_size || "-"}</div>
-                    <div className="text-sm text-muted-foreground">文件大小</div>
+                    <div className="text-base md:text-2xl font-bold text-foreground">{resource.file_size || "-"}</div>
+                    <div className="text-[10px] md:text-sm text-muted-foreground">大小</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{resource.file_format || "-"}</div>
-                    <div className="text-sm text-muted-foreground">文件格式</div>
+                    <div className="text-base md:text-2xl font-bold text-foreground">{resource.file_format || "-"}</div>
+                    <div className="text-[10px] md:text-sm text-muted-foreground">格式</div>
                   </div>
                 </div>
               </CardContent>
@@ -313,11 +313,11 @@ const ResourceDetail = () => {
 
             {/* Description */}
             {resource.description && (
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <h2 className="text-lg font-bold text-foreground mb-4">资料简介</h2>
+              <Card className="mb-4 md:mb-6">
+                <CardContent className="p-4 md:p-6">
+                  <h2 className="text-base md:text-lg font-bold text-foreground mb-3 md:mb-4">资料简介</h2>
                   <div 
-                    className="text-muted-foreground leading-relaxed [&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80"
+                    className="text-sm md:text-base text-muted-foreground leading-relaxed [&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80"
                     dangerouslySetInnerHTML={{ __html: renderMarkdown(resource.description) }} 
                   />
                 </CardContent>
@@ -326,9 +326,9 @@ const ResourceDetail = () => {
 
             {/* Content */}
             {resource.content && (
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <h2 className="text-lg font-bold text-foreground mb-4">详细内容</h2>
+              <Card className="mb-4 md:mb-6">
+                <CardContent className="p-4 md:p-6">
+                  <h2 className="text-base md:text-lg font-bold text-foreground mb-3 md:mb-4">详细内容</h2>
                   <div 
                     className="prose prose-sm max-w-none text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a]:hover:text-primary/80"
                     dangerouslySetInnerHTML={{ __html: renderMarkdown(resource.content) }} 
@@ -376,8 +376,8 @@ const ResourceDetail = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Download Card */}
-            <Card className="sticky top-20">
-              <CardContent className="p-6">
+            <Card className="lg:sticky lg:top-20">
+              <CardContent className="p-4 md:p-6">
                 <h3 className="text-lg font-bold text-foreground mb-4">下载资料</h3>
                 
                 {resource.access_type === "免费" ? (
@@ -433,8 +433,8 @@ const ResourceDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Meta Info */}
-            <Card>
+            {/* Meta Info - hidden on mobile (info already shown above) */}
+            <Card className="hidden lg:block">
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold text-foreground mb-4">资料信息</h3>
                 <div className="space-y-3 text-sm">

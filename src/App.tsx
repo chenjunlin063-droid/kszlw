@@ -23,6 +23,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminVipOrders from "./pages/admin/AdminVipOrders";
 import VipMembership from "./pages/VipMembership";
 import AdminInvitationCodes from "./pages/admin/AdminInvitationCodes";
+import ResourceList from "./pages/ResourceList";
 
 const queryClient = new QueryClient();
 
@@ -43,11 +44,9 @@ const App = () => (
             <Route path="/resource/:slug" element={<ResourceDetail />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/vip" element={<VipMembership />} />
-            <Route path="/free" element={<Index />} />
-            <Route path="/hot" element={<Index />} />
-            <Route path="/new" element={<Index />} />
-            <Route path="/promotions" element={<Index />} />
-            <Route path="/about" element={<Index />} />
+            <Route path="/free" element={<ResourceList />} />
+            <Route path="/hot" element={<ResourceList />} />
+            <Route path="/new" element={<ResourceList />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>

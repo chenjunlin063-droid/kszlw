@@ -226,7 +226,7 @@ const Index = () => {
                     查看全部 <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                   </Link>
                 </div>
-                <div className="space-y-1.5 md:space-y-3">
+                <div className="bg-card rounded-lg border border-border divide-y divide-border/50 px-2 md:px-4">
                   {newResources.map((resource) => (
                     <ResourceCard 
                       key={resource.id} 
@@ -258,7 +258,7 @@ const Index = () => {
                     查看全部 <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                   </Link>
                 </div>
-                <div className="space-y-1.5 md:space-y-3">
+                <div className="bg-card rounded-lg border border-border divide-y divide-border/50 px-2 md:px-4">
                   {hotResources.map((resource) => (
                     <ResourceCard 
                       key={resource.id} 
@@ -290,7 +290,7 @@ const Index = () => {
                     查看全部 <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                   </Link>
                 </div>
-                <div className="space-y-1.5 md:space-y-3">
+                <div className="bg-card rounded-lg border border-border divide-y divide-border/50 px-2 md:px-4">
                   {freeResources.map((resource) => (
                     <ResourceCard 
                       key={resource.id} 
